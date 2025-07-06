@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <script src="https://cdn.jsdelivr.net/gh/isaoinvest/ar-libs/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/isaoinvest/ar-libs/mindar-image-aframe.prod.js"></script>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
-      /* 您的 CSS 樣式保持不變 */
+      /* CSS 樣式保持不變 */
       body {
         margin: 0;
         overflow: hidden;
@@ -82,13 +82,9 @@
         50% { transform: translateY(197px); }
         100% { transform: translateY(0); }
       }
-      /* 持續播放和全螢幕的CSS可以保留，以備target1使用 */
-      .control-button { display: none; /* 暫時隱藏，因為文字效果不需要 */ }
-      #fullscreen-video-container { display: none; }
     </style>
-  </head>
-  <body>
-    <button class="control-button" id="continue-play-button">持續播放</button>
+</head>
+<body>
     <div id="scanning-overlay">
       <div class="scanner-inner">
         <div class="scanner-line"></div>
@@ -98,9 +94,6 @@
         <div class="corner corner-bottom-right"></div>
         <div class="scanning-text">目標掃描中</div>
       </div>
-    </div>
-    <div id="fullscreen-video-container">
-      <video id="fullscreen-video" playsinline webkit-playsinline></video>
     </div>
 
     <a-scene
@@ -115,25 +108,17 @@
       loading-screen="enabled: true; dotsColor: #00ffff; backgroundColor: #000000"
     >
       <a-assets>
-        <video
-          id="video1"
-          src="YOUR_VIDEO1_URL.mp4"
+        <audio 
+          id="starwars-music" 
+          src="https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/targets.mind/Star Wars Main Title.mp3" 
           preload="auto"
-          loop
-          crossorigin="anonymous"
-          playsinline
-          webkit-playsinline
-          muted
-        ></video>
+        ></audio>
       </a-assets>
 
-      <a-camera
-        position="0 0 0"
-        look-controls="enabled: false"
-      ></a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity id="target0" mindar-image-target="targetIndex: 0" visible="false">
-        <a-entity id="text-crawl-container" position="0 0 0" rotation="-60 0 0">
+      <a-entity id="target0" mindar-image-target="targetIndex: 0">
+        <a-entity id="text-crawl-container" position="0 -0.5 0" rotation="-60 0 0" visible="false">
           <a-text 
             id="crawl-text"
             value="很久很久以前，在一個遙遠的銀河系....\n\n這是一個充滿希望與創新的時代。\n\n基於 A-Frame 與 MindAR 技術，開發者們得以在網頁上建構前所未有的擴增實境體驗。\n\n現在，使用者只需透過手機掃描，便能喚醒沉睡的數位內容，見證虛擬與現實的完美融合。\n\n這段文字將如史詩般展開，引領我們進入一個充滿無限可能的全新視界。"
@@ -141,96 +126,55 @@
             width="2"
             align="center"
             anchor="center"
+            letter-spacing="2"
+            line-height="60"
+            font="https://raw.githubusercontent.com/etiennepinchon/aframe-fonts/master/fonts/notosans/notosans.json"
+            negate="false"
           >
-            <a-animation 
-              attribute="position"
-              from="0 -1.5 -2"
-              to="0 1.5 -6"
-              dur="30000"
-              easing="linear"
-              begin="start-crawl"
-            ></a-animation>
           </a-text>
         </a-entity>
-      </a-entity>
-
-      <a-entity
-        id="target1"
-        mindar-image-target="targetIndex: 1"
-      >
-        <a-video
-          id="video1-entity"
-          src="#video1"
-          position="0 0 0"
-          width="1"
-          height="0.556"
-          loop="true"
-        ></a-video>
       </a-entity>
     </a-scene>
 
     <script>
-      // 等待 A-Frame 載入完成
       document.addEventListener("DOMContentLoaded", () => {
-        // 主要應用邏輯
-        const target0El = document.querySelector("#target0");
-        const crawlTextAnimation = document.querySelector("#crawl-text").components.animation;
-        
-        const video1El = document.querySelector("#video1");
-        const target1El = document.querySelector("#target1");
-        const scanningOverlay = document.getElementById("scanning-overlay");
+        const targetEl = document.querySelector("#target0");
+        const textContainer = document.querySelector("#text-crawl-container");
+        const textEl = document.querySelector("#crawl-text");
+        const music = document.querySelector("#starwars-music");
 
-        // ------------------ 目標0 (文字捲動) 的邏輯 ------------------
-        if (target0El) {
-          target0El.addEventListener("targetFound", () => {
-            console.log("Target 0 Found");
-            scanningOverlay.classList.add("hidden");
-            target0El.setAttribute('visible', true);
-            // 觸發名為 'start-crawl' 的事件來開始動畫
-            target0El.querySelector('#crawl-text').emit('start-crawl');
-          });
+        // 【關鍵修復2】定義動畫屬性，我們將在找到目標時動態添加它
+        const animationConfig = {
+          property: 'position',
+          from: '0 -2 -2',
+          to: '0 2 -6',
+          dur: 40000,
+          easing: 'linear',
+        };
 
-          target0El.addEventListener("targetLost", () => {
-            console.log("Target 0 Lost");
-            target0El.setAttribute('visible', false);
-            // 停止動畫，以便下次找到時可以重新開始
-            // A-Frame 動畫在父元素隱藏時會自動暫停和重置狀態
-            if (target1El && !target1El.getAttribute('visible')) {
-                scanningOverlay.classList.remove("hidden");
-            }
-          });
-        }
+        targetEl.addEventListener("targetFound", () => {
+          console.log("Target Found");
+          textContainer.setAttribute('visible', true);
+          
+          // 動態添加動畫屬性並開始播放
+          textEl.setAttribute('animation', animationConfig);
+          
+          // 播放音樂
+          music.play().catch(e => console.error("音樂播放失敗:", e));
+        });
 
-        // ------------------ 目標1 (影片播放) 的邏輯 (可選) ------------------
-        // 這部分邏輯您可以保留，如果您需要第二個目標播放影片
-        let video1Playing = false;
-        if (target1El && video1El) {
-            target1El.addEventListener("targetFound", () => {
-                console.log("Target 1 Found");
-                scanningOverlay.classList.add("hidden");
-                video1El.play();
-                video1Playing = true;
-            });
-
-            target1El.addEventListener("targetLost", () => {
-                console.log("Target 1 Lost");
-                video1El.pause();
-                video1Playing = false;
-                if (!target0El.getAttribute('visible')) {
-                    scanningOverlay.classList.remove("hidden");
-                }
-            });
-        }
-        
-        // 頁面可見性變化處理
-        document.addEventListener("visibilitychange", () => {
-          if (document.visibilityState === "hidden") {
-            if (video1Playing) video1El.pause();
-          } else if (document.visibilityState === "visible") {
-            if (video1Playing) video1El.play();
-          }
+        targetEl.addEventListener("targetLost", () => {
+          console.log("Target Lost");
+          textContainer.setAttribute('visible', false);
+          
+          // 移除動畫屬性，以便下次可以重頭開始
+          textEl.removeAttribute('animation');
+          
+          // 暫停音樂並將時間重設為0
+          music.pause();
+          music.currentTime = 0;
         });
       });
     </script>
-  </body>
+</body>
 </html>
