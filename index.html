@@ -14,6 +14,8 @@
         overflow: hidden;
         width: 100vw;
         height: 100vh;
+        /* 為了偵錯，我們讓背景色的變化更明顯 */
+        transition: background-color 0.5s;
       }
       #scanning-overlay {
         position: fixed;
@@ -42,46 +44,7 @@
         overflow: hidden;
         box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
       }
-      .scanner-line {
-        position: absolute;
-        height: 3px;
-        width: 100%;
-        background: linear-gradient(90deg, transparent, #00ffff, #00ffff, transparent);
-        top: 0;
-        animation: scan 2.5s linear infinite;
-        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-      }
-      .corner {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        border-color: rgba(0, 255, 255, 0.9);
-        border-style: solid;
-        border-width: 0;
-      }
-      .corner-top-left { top: -2px; left: -2px; border-top-width: 3px; border-left-width: 3px; }
-      .corner-top-right { top: -2px; right: -2px; border-top-width: 3px; border-right-width: 3px; }
-      .corner-bottom-left { bottom: -2px; left: -2px; border-bottom-width: 3px; border-left-width: 3px; }
-      .corner-bottom-right { bottom: -2px; right: -2px; border-bottom-width: 3px; border-right-width: 3px; }
-      .scanning-text {
-        position: absolute;
-        bottom: -35px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100%;
-        text-align: center;
-        font-family: Arial, sans-serif;
-        color: rgba(0, 255, 255, 0.9);
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-size: 14px;
-        text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-      }
-      @keyframes scan {
-        0% { transform: translateY(0); }
-        50% { transform: translateY(197px); }
-        100% { transform: translateY(0); }
-      }
+      /* 其他 CSS ... */
     </style>
 </head>
 <body>
@@ -110,7 +73,7 @@
       <a-assets>
         <audio 
           id="starwars-music" 
-          src="https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/targets.mind/Star Wars Main Title.mp3" 
+          src="https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/Star Wars Main Title.mp3" 
           preload="auto"
         ></audio>
       </a-assets>
@@ -143,7 +106,6 @@
         const textEl = document.querySelector("#crawl-text");
         const music = document.querySelector("#starwars-music");
 
-        // 【關鍵修復2】定義動畫屬性，我們將在找到目標時動態添加它
         const animationConfig = {
           property: 'position',
           from: '0 -2 -2',
@@ -153,24 +115,22 @@
         };
 
         targetEl.addEventListener("targetFound", () => {
-          console.log("Target Found");
+          // 【偵錯點】如果程式能執行到這裡，整個背景會變成紅色！
+          document.body.style.backgroundColor = 'red';
+          
+          console.log("偵錯成功：Target Found 事件已觸發！");
           textContainer.setAttribute('visible', true);
-          
-          // 動態添加動畫屬性並開始播放
           textEl.setAttribute('animation', animationConfig);
-          
-          // 播放音樂
           music.play().catch(e => console.error("音樂播放失敗:", e));
         });
 
         targetEl.addEventListener("targetLost", () => {
+          // 【偵錯點】當目標丟失時，背景會變回黑色
+          document.body.style.backgroundColor = 'black';
+          
           console.log("Target Lost");
           textContainer.setAttribute('visible', false);
-          
-          // 移除動畫屬性，以便下次可以重頭開始
           textEl.removeAttribute('animation');
-          
-          // 暫停音樂並將時間重設為0
           music.pause();
           music.currentTime = 0;
         });
