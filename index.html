@@ -13,7 +13,7 @@
         overflow: hidden;
         width: 100vw;
         height: 100vh;
-        background-color: #000;
+        background-color: transparent;
         transition: background-color 0.5s;
       }
       
@@ -108,77 +108,60 @@
         white-space: nowrap;
       }
 
-      /* 自定義星際大戰滾動字幕 CSS */
+      /* AR 風格星際大戰滾動字幕 CSS */
       #star-wars-crawl {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(to bottom, #000 0%, #001 50%, #000 100%);
+        background: transparent;
         overflow: hidden;
         z-index: 1;
         display: none;
-        perspective: 400px;
+        perspective: 800px;
+        pointer-events: none;
       }
 
       .crawl-container {
         position: absolute;
         top: 100%;
         left: 50%;
-        width: 80%;
-        max-width: 600px;
-        transform: translateX(-50%) rotateX(25deg);
+        width: 90%;
+        max-width: 400px;
+        transform: translateX(-50%) rotateX(20deg);
         color: #FFD700;
-        font-family: 'Arial', sans-serif;
-        font-size: 18px;
-        line-height: 1.8;
+        font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
+        font-size: 24px;
+        font-weight: bold;
+        line-height: 1.6;
         text-align: center;
-        animation: crawl 60s linear infinite;
-        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        animation: crawl 50s linear infinite;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 215, 0, 0.6);
       }
 
       @keyframes crawl {
         0% {
           top: 100%;
-          transform: translateX(-50%) rotateX(25deg) scale(1);
+          transform: translateX(-50%) rotateX(20deg) scale(1);
         }
         100% {
-          top: -100%;
-          transform: translateX(-50%) rotateX(25deg) scale(0.1);
+          top: -150%;
+          transform: translateX(-50%) rotateX(20deg) scale(0.3);
         }
       }
 
       .crawl-text {
-        margin: 30px 0;
-        padding: 0 20px;
+        margin: 40px 0;
+        padding: 0 15px;
       }
 
       .title {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: bold;
-        margin-bottom: 50px;
-        letter-spacing: 6px;
-      }
-
-      /* 星空背景 */
-      .stars {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: transparent;
-      }
-
-      .star {
-        position: absolute;
-        background: #fff;
-        border-radius: 50%;
-        animation: twinkle 3s infinite;
-      }
-
-      @keyframes twinkle {
-        0%, 100% { opacity: 0.3; }
-        50% { opacity: 1; }
+        margin-bottom: 60px;
+        letter-spacing: 4px;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 215, 0, 0.8);
       }
     </style>
 </head>
@@ -194,9 +177,8 @@
       </div>
     </div>
 
-    <!-- 自定義星際大戰滾動字幕 -->
+    <!-- AR 風格星際大戰滾動字幕 -->
     <div id="star-wars-crawl">
-      <div class="stars"></div>
       <div class="crawl-container">
         <div class="title">很久很久以前，在一個遙遠的銀河系....</div>
         
@@ -293,29 +275,12 @@
         const crawlElement = document.querySelector("#star-wars-crawl");
         const music = document.querySelector("#starwars-music");
 
-        // 創建星空背景
-        function createStars() {
-          const starsContainer = document.querySelector('.stars');
-          for (let i = 0; i < 100; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.width = Math.random() * 3 + 1 + 'px';
-            star.style.height = star.style.width;
-            star.style.animationDelay = Math.random() * 3 + 's';
-            starsContainer.appendChild(star);
-          }
-        }
-
-        createStars();
-
         // 目標發現事件
         targetEl.addEventListener("targetFound", () => {
           console.log("偵錯成功：Target Found 事件已觸發！");
           
-          // 改變背景色作為偵錯標識
-          document.body.style.backgroundColor = '#001122';
+          // 改變背景色作為偵錯標識（輕微變化以保持 AR 效果）
+          document.body.style.backgroundColor = 'rgba(0, 17, 34, 0.1)';
           
           // 顯示星際大戰滾動字幕
           crawlElement.style.display = 'block';
@@ -342,8 +307,8 @@
         targetEl.addEventListener("targetLost", () => {
           console.log("Target Lost");
           
-          // 恢復背景色
-          document.body.style.backgroundColor = '#000';
+          // 恢復透明背景
+          document.body.style.backgroundColor = 'transparent';
           
           // 隱藏滾動字幕
           crawlElement.style.display = 'none';
