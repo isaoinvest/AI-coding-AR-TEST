@@ -325,67 +325,71 @@
             if (!animationRunning) return;
             
             const textElements = document.querySelectorAll('.crawl-text, .title');
-            let lastElementCompletelyGone = false;
             const lastElement = textElements[textElements.length - 1];
+            const viewportHeight = window.innerHeight;
+            const centerY = viewportHeight * 0.5; // 螢幕中央線
             
+            // 檢查最後一個元素的狀態
+            const lastRect = lastElement.getBoundingClientRect();
+            const lastElementVisible = lastRect.bottom > 0 && lastRect.top < viewportHeight;
+            const lastElementPastCenter = lastRect.bottom <= centerY;
+            const lastElementOpacity = parseFloat(lastElement.style.opacity) || 1;
+            
+            console.log(`最後元素狀態: 可見=${lastElementVisible}, 超過中央=${lastElementPastCenter}, 透明度=${lastElementOpacity.toFixed(2)}, bottom=${lastRect.bottom.toFixed(0)}, centerY=${centerY.toFixed(0)}`);
+            
+            // 處理每個文字元素的淡出
             textElements.forEach((textEl, index) => {
               const rect = textEl.getBoundingClientRect();
-              const viewportHeight = window.innerHeight;
-              const centerY = viewportHeight * 0.5; // 螢幕中央線
               
               // 當文字的底部到達螢幕中央時開始淡出
-              if (rect.bottom <= centerY) {
+              if (rect.bottom <= centerY && rect.bottom > 0) {
                 // 計算淡出進度：文字底部越過中央線越多，透明度越低
                 const distancePastCenter = centerY - rect.bottom;
-                const fadeDistance = viewportHeight * 0.2; // 20%螢幕高度內完成淡出
+                const fadeDistance = viewportHeight * 0.15; // 15%螢幕高度內完成淡出
                 const fadeProgress = Math.max(0, 1 - (distancePastCenter / fadeDistance));
                 textEl.style.opacity = fadeProgress;
-                
-                // 檢查最後一個元素是否完全消失
-                if (textEl === lastElement && fadeProgress <= 0.05) {
-                  lastElementCompletelyGone = true;
-                }
-              } else {
+              } else if (rect.bottom > centerY) {
                 // 確保還未到達中央的文字完全不透明
                 textEl.style.opacity = 1;
               }
+              // 如果文字已經完全移出螢幕上方，保持當前透明度
             });
             
-            // 只有當最後一個字完全淡出且移動到足夠遠的位置才重新開始
-            if (lastElementCompletelyGone && animationRunning) {
-              const lastRect = lastElement.getBoundingClientRect();
-              // 確保最後一個字已經移動到螢幕上方足夠距離
-              if (lastRect.bottom < window.innerHeight * 0.3) {
-                console.log('最後一個字幕已完全消失，準備重新開始');
-                // 停止當前檢測
-                animationRunning = false;
-                
-                // 等待一段時間再重新開始
-                setTimeout(() => {
-                  if (crawlElement.style.display === 'block') {
-                    console.log('重新開始字幕循環');
-                    const container = document.querySelector('.crawl-container');
-                    
-                    // 重置所有文字透明度
-                    textElements.forEach(textEl => {
-                      textEl.style.opacity = 1;
-                    });
-                    
-                    // 重新啟動動畫
-                    container.style.animation = 'none';
-                    container.style.top = '100%';
-                    container.style.transform = 'translateX(-50%) rotateX(20deg)';
-                    container.offsetHeight; // 強制重繪
-                    
-                    setTimeout(() => {
-                      container.style.animation = 'crawl 35s linear infinite';
-                      animationRunning = true;
-                      handleIndividualTextFading(); // 重新啟動淡出檢測
-                    }, 100);
-                  }
-                }, 2000); // 2秒的透明間隔
-                return;
-              }
+            // 檢查是否應該重新開始：
+            // 1. 最後一個元素已經移動到螢幕上方
+            // 2. 最後一個元素的透明度非常低（幾乎消失）
+            const shouldRestart = lastRect.top < 0 && lastRect.bottom < centerY * 0.5 && lastElementOpacity < 0.1;
+            
+            if (shouldRestart && animationRunning) {
+              console.log('所有字幕播放完畢，準備重新開始');
+              // 停止當前檢測
+              animationRunning = false;
+              
+              // 等待一段時間再重新開始
+              setTimeout(() => {
+                if (crawlElement.style.display === 'block') {
+                  console.log('重新開始字幕循環');
+                  const container = document.querySelector('.crawl-container');
+                  
+                  // 重置所有文字透明度
+                  textElements.forEach(textEl => {
+                    textEl.style.opacity = 1;
+                  });
+                  
+                  // 重新啟動動畫
+                  container.style.animation = 'none';
+                  container.style.top = '100%';
+                  container.style.transform = 'translateX(-50%) rotateX(20deg)';
+                  container.offsetHeight; // 強制重繪
+                  
+                  setTimeout(() => {
+                    container.style.animation = 'crawl 35s linear infinite';
+                    animationRunning = true;
+                    handleIndividualTextFading(); // 重新啟動淡出檢測
+                  }, 100);
+                }
+              }, 2000); // 2秒的透明間隔
+              return;
             }
             
             if (animationRunning) {
