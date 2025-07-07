@@ -183,10 +183,33 @@
         max-width: 100%;
       }
 
-    </style>
-</head>
-<body>
-    <div id="scanning-overlay">
+      /* 持續播放按鈕 */
+      .continue-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+        background: linear-gradient(45deg, #FFD700, #FFA500);
+        color: #000;
+        border: none;
+        border-radius: 25px;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        display: none;
+        transition: all 0.3s ease;
+      }
+
+      .continue-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+      }
+
+      .continue-button:active {
+        transform: scale(0.95);
+      }
       <div class="scanner-inner">
         <div class="scanner-line"></div>
         <div class="corner corner-top-left"></div>
@@ -293,27 +316,29 @@
         const targetEl = document.querySelector("#target0");
         const crawlElement = document.querySelector("#star-wars-crawl");
         const music = document.querySelector("#starwars-music");
+        const continueButton = document.querySelector("#continue-button");
         let animationRunning = false;
+        let hasFoundTarget = false; // 記錄是否曾經找到過目標
 
         // 逐行消失效果函數
         function handleIndividualTextFading() {
-          const textElements = document.querySelectorAll('.crawl-text, .title');
-          
           const checkTextPosition = () => {
             if (!animationRunning) return;
             
+            const textElements = document.querySelectorAll('.crawl-text, .title');
             textElements.forEach(textEl => {
               const rect = textEl.getBoundingClientRect();
               const viewportHeight = window.innerHeight;
               
               // 當文字到達螢幕頂部30%區域時開始淡出
-              if (rect.top < viewportHeight * 0.3) {
-                const fadeProgress = Math.max(0, rect.top / (viewportHeight * 0.3));
+              if (rect.top < viewportHeight * 0.3 && rect.bottom > 0) {
+                const fadeProgress = Math.max(0, Math.min(1, rect.top / (viewportHeight * 0.3)));
                 textEl.style.opacity = fadeProgress;
-              } else {
+              } else if (rect.top >= viewportHeight * 0.3) {
                 // 確保在可見區域的文字完全不透明
                 textEl.style.opacity = 1;
               }
+              // 注意：不要重置已經消失的文字透明度
             });
             
             if (animationRunning) {
@@ -324,22 +349,12 @@
           checkTextPosition();
         }
 
-        // 目標發現事件
-        targetEl.addEventListener("targetFound", () => {
-          console.log("Target Found 事件已觸發！");
-          
-          // 改變背景色作為偵錯標識
-          document.body.style.backgroundColor = 'rgba(0, 50, 100, 0.3)';
+        // 開始播放字幕和音樂
+        function startPlayback() {
+          animationRunning = true;
           
           // 顯示星際大戰滾動字幕
           crawlElement.style.display = 'block';
-          animationRunning = true;
-          
-          // 重置所有文字透明度
-          const textElements = document.querySelectorAll('.crawl-text, .title');
-          textElements.forEach(textEl => {
-            textEl.style.opacity = 1;
-          });
           
           // 啟動逐行淡出效果
           handleIndividualTextFading();
@@ -359,20 +374,32 @@
               document.addEventListener('click', tryPlayOnInteraction, { once: true });
             });
           }
-        });
+        }
 
-        // 目標丟失事件
-        targetEl.addEventListener("targetLost", () => {
-          console.log("Target Lost");
-          
-          // 停止動畫檢測
+        // 停止播放
+        function stopPlayback() {
           animationRunning = false;
-          
-          // 恢復透明背景
-          document.body.style.backgroundColor = 'transparent';
           
           // 隱藏滾動字幕
           crawlElement.style.display = 'none';
+          
+          // 停止音樂並重置
+          if (music) {
+            music.pause();
+            music.currentTime = 0;
+          }
+        }
+
+        // 目標發現事件
+        targetEl.addEventListener("targetFound", () => {
+          console.log("Target Found 事件已觸發！");
+          hasFoundTarget = true;
+          
+          // 改變背景色作為偵錯標識
+          document.body.style.backgroundColor = 'rgba(0, 50, 100, 0.3)';
+          
+          // 隱藏持續播放按鈕
+          continueButton.style.display = 'none';
           
           // 重置所有文字透明度
           const textElements = document.querySelectorAll('.crawl-text, .title');
@@ -380,11 +407,50 @@
             textEl.style.opacity = 1;
           });
           
-          // 停止音樂並重置
-          if (music) {
-            music.pause();
-            music.currentTime = 0;
+          // 開始播放
+          startPlayback();
+        });
+
+        // 目標丟失事件
+        targetEl.addEventListener("targetLost", () => {
+          console.log("Target Lost");
+          
+          // 恢復透明背景
+          document.body.style.backgroundColor = 'transparent';
+          
+          // 如果曾經找到過目標，顯示持續播放按鈕
+          if (hasFoundTarget) {
+            continueButton.style.display = 'block';
           }
+          
+          // 停止播放
+          stopPlayback();
+          
+          // 重置所有文字透明度以準備下次播放
+          const textElements = document.querySelectorAll('.crawl-text, .title');
+          textElements.forEach(textEl => {
+            textEl.style.opacity = 1;
+          });
+        });
+
+        // 持續播放按鈕點擊事件
+        continueButton.addEventListener('click', () => {
+          console.log("持續播放按鈕被點擊");
+          
+          // 隱藏按鈕
+          continueButton.style.display = 'none';
+          
+          // 改變背景色
+          document.body.style.backgroundColor = 'rgba(0, 50, 100, 0.3)';
+          
+          // 重置所有文字透明度
+          const textElements = document.querySelectorAll('.crawl-text, .title');
+          textElements.forEach(textEl => {
+            textEl.style.opacity = 1;
+          });
+          
+          // 開始播放
+          startPlayback();
         });
       });
     </script>
