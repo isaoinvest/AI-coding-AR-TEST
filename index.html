@@ -136,7 +136,7 @@
         font-weight: bold;
         line-height: 1.4;
         text-align: center;
-        animation: crawl 35s linear infinite;
+        animation: crawl 60s linear infinite;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 215, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.3);
       }
 
@@ -146,7 +146,7 @@
           transform: translateX(-50%) rotateX(20deg);
         }
         100% {
-          top: -50%;
+          top: -80%;
           transform: translateX(-50%) rotateX(20deg);
         }
       }
@@ -329,14 +329,6 @@
             const viewportHeight = window.innerHeight;
             const centerY = viewportHeight * 0.5; // 螢幕中央線
             
-            // 檢查最後一個元素的狀態
-            const lastRect = lastElement.getBoundingClientRect();
-            const lastElementVisible = lastRect.bottom > 0 && lastRect.top < viewportHeight;
-            const lastElementPastCenter = lastRect.bottom <= centerY;
-            const lastElementOpacity = parseFloat(lastElement.style.opacity) || 1;
-            
-            console.log(`最後元素狀態: 可見=${lastElementVisible}, 超過中央=${lastElementPastCenter}, 透明度=${lastElementOpacity.toFixed(2)}, bottom=${lastRect.bottom.toFixed(0)}, centerY=${centerY.toFixed(0)}`);
-            
             // 處理每個文字元素的淡出
             textElements.forEach((textEl, index) => {
               const rect = textEl.getBoundingClientRect();
@@ -352,16 +344,32 @@
                 // 確保還未到達中央的文字完全不透明
                 textEl.style.opacity = 1;
               }
-              // 如果文字已經完全移出螢幕上方，保持當前透明度
             });
             
-            // 檢查是否應該重新開始：
-            // 1. 最後一個元素已經移動到螢幕上方
-            // 2. 最後一個元素的透明度非常低（幾乎消失）
-            const shouldRestart = lastRect.top < 0 && lastRect.bottom < centerY * 0.5 && lastElementOpacity < 0.1;
+            // 檢查最後一個元素的狀態
+            const lastRect = lastElement.getBoundingClientRect();
+            const lastElementOpacity = parseFloat(lastElement.style.opacity) || 1;
+            
+            // 更嚴格的重置條件：
+            // 1. 最後一個元素已經完全移出螢幕頂部很遠
+            // 2. 最後一個元素已經完全透明
+            // 3. 動畫已經運行足夠長時間（60秒以上）
+            const currentTime = Date.now();
+            if (!window.animationStartTime) {
+              window.animationStartTime = currentTime;
+            }
+            const animationRunTime = currentTime - window.animationStartTime;
+            
+            const shouldRestart = 
+              lastRect.bottom < -100 && // 最後元素移出螢幕頂部100px以上
+              lastElementOpacity < 0.05 && // 幾乎完全透明
+              animationRunTime > 55000; // 動畫已運行55秒以上
             
             if (shouldRestart && animationRunning) {
               console.log('所有字幕播放完畢，準備重新開始');
+              // 重置時間記錄
+              window.animationStartTime = null;
+              
               // 停止當前檢測
               animationRunning = false;
               
@@ -383,8 +391,9 @@
                   container.offsetHeight; // 強制重繪
                   
                   setTimeout(() => {
-                    container.style.animation = 'crawl 35s linear infinite';
+                    container.style.animation = 'crawl 60s linear infinite';
                     animationRunning = true;
+                    window.animationStartTime = Date.now(); // 重新記錄開始時間
                     handleIndividualTextFading(); // 重新啟動淡出檢測
                   }, 100);
                 }
