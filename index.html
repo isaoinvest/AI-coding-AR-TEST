@@ -325,39 +325,46 @@
             if (!animationRunning) return;
             
             const textElements = document.querySelectorAll('.crawl-text, .title');
-            let allTextGone = true;
+            let lastElementGone = false;
+            const lastElement = textElements[textElements.length - 1];
             
-            textElements.forEach(textEl => {
+            textElements.forEach((textEl, index) => {
               const rect = textEl.getBoundingClientRect();
               const viewportHeight = window.innerHeight;
+              const centerY = viewportHeight * 0.5; // 螢幕中央
               
-              // 檢查是否還有文字在螢幕範圍內
-              if (rect.bottom > 0 && rect.top < viewportHeight) {
-                allTextGone = false;
+              // 當文字到達螢幕中央時開始淡出
+              if (rect.top < centerY && rect.bottom > 0) {
+                const fadeProgress = Math.max(0, Math.min(1, rect.top / centerY));
+                textEl.style.opacity = fadeProgress;
+              } else if (rect.top >= centerY) {
+                // 確保在中央以下的文字完全不透明
+                textEl.style.opacity = 1;
               }
               
-              // 當文字到達螢幕頂部30%區域時開始淡出
-              if (rect.top < viewportHeight * 0.3 && rect.bottom > 0) {
-                const fadeProgress = Math.max(0, Math.min(1, rect.top / (viewportHeight * 0.3)));
-                textEl.style.opacity = fadeProgress;
-              } else if (rect.top >= viewportHeight * 0.3) {
-                // 確保在可見區域的文字完全不透明
-                textEl.style.opacity = 1;
+              // 檢查最後一個元素是否已經完全消失
+              if (textEl === lastElement && rect.bottom < centerY && textEl.style.opacity <= 0) {
+                lastElementGone = true;
               }
             });
             
-            // 如果所有文字都消失了，重新開始循環
-            if (allTextGone && animationRunning) {
-              console.log('所有字幕已播放完畢，重新開始');
-              // 重置所有文字透明度
-              textElements.forEach(textEl => {
-                textEl.style.opacity = 1;
-              });
-              // 重新啟動動畫
-              crawlElement.style.animation = 'none';
+            // 只有當最後一個字完全消失後才重新開始循環
+            if (lastElementGone && animationRunning) {
+              console.log('最後一個字幕已消失，重新開始');
+              // 等待一小段時間再重新開始，讓螢幕完全清空
               setTimeout(() => {
-                crawlElement.style.animation = 'crawl 35s linear infinite';
-              }, 50);
+                if (animationRunning) {
+                  // 重置所有文字透明度
+                  textElements.forEach(textEl => {
+                    textEl.style.opacity = 1;
+                  });
+                  // 重新啟動動畫
+                  crawlElement.style.animation = 'none';
+                  crawlElement.offsetHeight; // 強制重繪
+                  crawlElement.style.animation = 'crawl 35s linear infinite';
+                }
+              }, 1000); // 1秒的透明間隔
+              return; // 停止檢測直到重新開始
             }
             
             if (animationRunning) {
@@ -370,6 +377,15 @@
 
         // 開始播放字幕和音樂
         function startPlayback(hideScanning = false) {
+          // 停止任何現有的動畫
+          crawlElement.style.animation = 'none';
+          
+          // 重置所有文字透明度和位置
+          const textElements = document.querySelectorAll('.crawl-text, .title');
+          textElements.forEach(textEl => {
+            textEl.style.opacity = 1;
+          });
+          
           animationRunning = true;
           
           // 如果需要隱藏掃描UI（持續播放模式）
@@ -380,8 +396,12 @@
           // 顯示星際大戰滾動字幕
           crawlElement.style.display = 'block';
           
-          // 啟動逐行淡出效果
-          handleIndividualTextFading();
+          // 強制重繪後重新啟動動畫
+          setTimeout(() => {
+            crawlElement.style.animation = 'crawl 35s linear infinite';
+            // 啟動逐行淡出效果
+            handleIndividualTextFading();
+          }, 100);
           
           // 播放音樂
           if (music) {
@@ -404,6 +424,9 @@
         function stopPlayback(showScanning = true) {
           animationRunning = false;
           
+          // 完全停止動畫
+          crawlElement.style.animation = 'none';
+          
           // 恢復掃描UI顯示
           if (showScanning) {
             document.querySelector('#scanning-overlay').style.display = 'flex';
@@ -411,6 +434,12 @@
           
           // 隱藏滾動字幕
           crawlElement.style.display = 'none';
+          
+          // 重置所有文字透明度
+          const textElements = document.querySelectorAll('.crawl-text, .title');
+          textElements.forEach(textEl => {
+            textEl.style.opacity = 1;
+          });
           
           // 停止音樂並重置
           if (music) {
@@ -430,14 +459,8 @@
           // 隱藏持續播放按鈕
           continueButton.style.display = 'none';
           
-          // 重置所有文字透明度
-          const textElements = document.querySelectorAll('.crawl-text, .title');
-          textElements.forEach(textEl => {
-            textEl.style.opacity = 1;
-          });
-          
-          // 開始播放
-          startPlayback();
+          // 開始播放（這裡會自動重置所有狀態）
+          startPlayback(false);
         });
 
         // 目標丟失事件
@@ -452,14 +475,8 @@
             continueButton.style.display = 'block';
           }
           
-          // 停止播放但保持掃描UI
+          // 停止播放並完全重置狀態
           stopPlayback(true);
-          
-          // 重置所有文字透明度以準備下次播放
-          const textElements = document.querySelectorAll('.crawl-text, .title');
-          textElements.forEach(textEl => {
-            textEl.style.opacity = 1;
-          });
         });
 
         // 持續播放按鈕點擊事件
@@ -472,19 +489,7 @@
           // 改變背景色，使用與目標檢測相同的亮度
           document.body.style.backgroundColor = 'rgba(0, 50, 100, 0.3)';
           
-          // 重置所有文字透明度
-          const textElements = document.querySelectorAll('.crawl-text, .title');
-          textElements.forEach(textEl => {
-            textEl.style.opacity = 1;
-          });
-          
-          // 重置動畫到開始狀態
-          crawlElement.style.animation = 'none';
-          setTimeout(() => {
-            crawlElement.style.animation = 'crawl 35s linear infinite';
-          }, 50);
-          
-          // 開始播放並隱藏掃描UI
+          // 開始播放並隱藏掃描UI（這裡會自動重置所有狀態）
           startPlayback(true);
         });
       });
