@@ -107,6 +107,79 @@
         font-size: 14px;
         white-space: nowrap;
       }
+
+      /* 自定義星際大戰滾動字幕 CSS */
+      #star-wars-crawl {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, #000 0%, #001 50%, #000 100%);
+        overflow: hidden;
+        z-index: 1;
+        display: none;
+        perspective: 400px;
+      }
+
+      .crawl-container {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        width: 80%;
+        max-width: 600px;
+        transform: translateX(-50%) rotateX(25deg);
+        color: #FFD700;
+        font-family: 'Arial', sans-serif;
+        font-size: 18px;
+        line-height: 1.8;
+        text-align: center;
+        animation: crawl 60s linear infinite;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+      }
+
+      @keyframes crawl {
+        0% {
+          top: 100%;
+          transform: translateX(-50%) rotateX(25deg) scale(1);
+        }
+        100% {
+          top: -100%;
+          transform: translateX(-50%) rotateX(25deg) scale(0.1);
+        }
+      }
+
+      .crawl-text {
+        margin: 30px 0;
+        padding: 0 20px;
+      }
+
+      .title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 50px;
+        letter-spacing: 6px;
+      }
+
+      /* 星空背景 */
+      .stars {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+      }
+
+      .star {
+        position: absolute;
+        background: #fff;
+        border-radius: 50%;
+        animation: twinkle 3s infinite;
+      }
+
+      @keyframes twinkle {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 1; }
+      }
     </style>
 </head>
 <body>
@@ -118,6 +191,70 @@
         <div class="corner corner-bottom-left"></div>
         <div class="corner corner-bottom-right"></div>
         <div class="scanning-text">目標掃描中</div>
+      </div>
+    </div>
+
+    <!-- 自定義星際大戰滾動字幕 -->
+    <div id="star-wars-crawl">
+      <div class="stars"></div>
+      <div class="crawl-container">
+        <div class="title">很久很久以前，在一個遙遠的銀河系....</div>
+        
+        <div class="crawl-text">
+          這是一個充滿希望與創新的時代。
+        </div>
+        
+        <div class="crawl-text">
+          在這個數位革命的年代，科技已經超越了人類的想像。
+        </div>
+        
+        <div class="crawl-text">
+          基於 A-Frame 與 MindAR 技術，開發者們得以在網頁上建構前所未有的擴增實境體驗。
+        </div>
+        
+        <div class="crawl-text">
+          現在，使用者只需透過手機掃描，便能喚醒沉睡的數位內容，見證虛擬與現實的完美融合。
+        </div>
+        
+        <div class="crawl-text">
+          這項技術讓平凡的紙張瞬間變成了通往另一個世界的入口。
+        </div>
+        
+        <div class="crawl-text">
+          在這個全新的時代裡，每個人都可以成為數位魔法師的傳承者。
+        </div>
+        
+        <div class="crawl-text">
+          透過簡單的手勢和掃描，我們能夠召喚出隱藏在現實中的神秘力量和無限可能。
+        </div>
+        
+        <div class="crawl-text">
+          這段文字將如史詩般展開，引領我們進入一個充滿無限可能的全新視界。
+        </div>
+        
+        <div class="crawl-text">
+          在這個融合了科技與夢想的世界裡，每一次的掃描都是一場冒險，每一個發現都是一個奇蹟。
+        </div>
+        
+        <div class="crawl-text">
+          讓我們一起踏上這段旅程，探索數位與現實交融的奧秘，開啟屬於我們的科技傳奇。
+        </div>
+        
+        <div class="crawl-text">
+          在無盡的可能性中，我們將發現屬於自己的力量。
+        </div>
+        
+        <div class="crawl-text">
+          這就是擴增實境的魔力，這就是未來的開始。
+        </div>
+        
+        <div class="crawl-text">
+          願原力與你同在...
+        </div>
+        
+        <div class="crawl-text">
+          願科技的光芒照亮我們前進的道路。
+        </div>
       </div>
     </div>
 
@@ -140,145 +277,38 @@
           crossorigin="anonymous"
           volume="0.7"
         ></audio>
-        <!-- 自定義字體支持中文 -->
-        <a-mixin id="chinese-text" 
-                 geometry="primitive: plane; width: auto; height: auto"
-                 material="shader: msdf; transparent: true; alphaTest: 0.5; color: #FFD700"></a-mixin>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity id="target0" mindar-image-target="targetIndex: 0">
-        <!-- 星際大戰風格滾動字幕容器 -->
-        <a-entity id="text-crawl-container" position="0 -0.8 -0.5" rotation="-30 0 0" visible="false">
-          <!-- 背景星空效果 -->
-          <a-sky color="#000011"></a-sky>
-          
-          <!-- 滾動字幕文字 -->
-          <!-- 使用多個 a-text 元素來確保中文顯示 -->
-          <a-text 
-            id="crawl-text"
-            value="很久很久以前，在一個遙遠的銀河系...."
-            color="#FFD700"
-            width="2"
-            align="center"
-            anchor="center"
-            position="0 -3 0"
-          ></a-text>
-          
-          <a-text 
-            id="crawl-text-2"
-            value="這是一個充滿希望與創新的時代。\n\n在這個數位革命的年代，\n科技已經超越了人類的想像。"
-            color="#FFD700"
-            width="2"
-            align="center"
-            anchor="center"
-            position="0 -2 0"
-          ></a-text>
-          
-          <a-text 
-            id="crawl-text-3"
-            value="基於 A-Frame 與 MindAR 技術，\n開發者們得以在網頁上建構\n前所未有的擴增實境體驗。"
-            color="#FFD700"
-            width="2"
-            align="center"
-            anchor="center"
-            position="0 -1 0"
-          ></a-text>
-          
-          <a-text 
-            id="crawl-text-4"
-            value="現在，使用者只需透過手機掃描，\n便能喚醒沉睡的數位內容，\n見證虛擬與現實的完美融合。"
-            color="#FFD700"
-            width="2"
-            align="center"
-            anchor="center"
-            position="0 0 0"
-          ></a-text>
-          
-          <a-text 
-            id="crawl-text-5"
-            value="這項技術讓平凡的紙張\n瞬間變成了通往另一個世界的入口。\n\n在這個全新的時代裡，\n每個人都可以成為數位魔法師。"
-            color="#FFD700"
-            width="2"
-            align="center"
-            anchor="center"
-            position="0 1 0"
-          ></a-text>
-          
-          <a-text 
-            id="crawl-text-6"
-            value="透過簡單的手勢和掃描，\n我們能夠召喚出隱藏在現實中的\n神秘力量和無限可能。"
-            color="#FFD700"
-            width="2"
-            align="center"
-            anchor="center"
-            position="0 2 0"
-          ></a-text>
-          
-          <a-text 
-            id="crawl-text-7"
-            value="這段文字將如史詩般展開，\n引領我們進入一個充滿無限可能的\n全新視界。"
-            color="#FFD700"
-            width="2"
-            align="center"
-            anchor="center"
-            position="0 3 0"
-          ></a-text>
-          
-          <a-text 
-            id="crawl-text-8"
-            value="願原力與你同在...\n\n願科技的光芒照亮我們前進的道路"
-            color="#FFD700"
-            width="2"
-            align="center"
-            anchor="center"
-            position="0 4 0"
-          ></a-text>
-          </a-text>
-          
-          <!-- 添加星光效果 -->
-          <a-entity id="stars">
-            <a-sphere position="2 4 -8" radius="0.02" color="#FFFFFF" opacity="0.8"></a-sphere>
-            <a-sphere position="-3 3 -10" radius="0.02" color="#FFFFFF" opacity="0.6"></a-sphere>
-            <a-sphere position="4 2 -12" radius="0.02" color="#FFFFFF" opacity="0.9"></a-sphere>
-            <a-sphere position="-2 5 -9" radius="0.02" color="#FFFFFF" opacity="0.7"></a-sphere>
-            <a-sphere position="1 6 -11" radius="0.02" color="#FFFFFF" opacity="0.5"></a-sphere>
-            <a-sphere position="-4 1 -13" radius="0.02" color="#FFFFFF" opacity="0.8"></a-sphere>
-            <a-sphere position="3 -1 -15" radius="0.02" color="#FFFFFF" opacity="0.6"></a-sphere>
-            <a-sphere position="-1 7 -14" radius="0.02" color="#FFFFFF" opacity="0.7"></a-sphere>
-          </a-entity>
-        </a-entity>
+        <!-- 簡化的 AR 內容，主要功能移到 CSS 滾動字幕 -->
+        <a-sphere position="0 0 -1" radius="0.1" color="#FFD700" opacity="0.8"></a-sphere>
       </a-entity>
     </a-scene>
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const targetEl = document.querySelector("#target0");
-        const textContainer = document.querySelector("#text-crawl-container");
-        const allTextElements = document.querySelectorAll("#text-crawl-container a-text");
+        const crawlElement = document.querySelector("#star-wars-crawl");
         const music = document.querySelector("#starwars-music");
-        const starsEl = document.querySelector("#stars");
 
-        // 簡化的滾動動畫配置 - 避免抖動
-        const crawlAnimation = {
-          property: 'position',
-          from: '0 -0.8 -0.5',
-          to: '0 3 -0.5',
-          dur: 40000,
-          easing: 'linear',
-          loop: false
-        };
+        // 創建星空背景
+        function createStars() {
+          const starsContainer = document.querySelector('.stars');
+          for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.width = Math.random() * 3 + 1 + 'px';
+            star.style.height = star.style.width;
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+          }
+        }
 
-        // 星光閃爍動畫
-        const starTwinkleAnimation = {
-          property: 'rotation',
-          from: '0 0 0',
-          to: '360 360 360',
-          dur: 20000,
-          easing: 'linear',
-          loop: true
-        };
+        createStars();
 
         // 目標發現事件
         targetEl.addEventListener("targetFound", () => {
@@ -287,22 +317,20 @@
           // 改變背景色作為偵錯標識
           document.body.style.backgroundColor = '#001122';
           
-          // 顯示滾動字幕容器
-          textContainer.setAttribute('visible', true);
+          // 顯示星際大戰滾動字幕
+          crawlElement.style.display = 'block';
           
-          // 開始整個容器的滾動動畫
-          textContainer.setAttribute('animation', crawlAnimation);
-          
-          // 開始星光閃爍動畫
-          starsEl.setAttribute('animation', starTwinkleAnimation);
-          
-          // 播放音樂 - 添加用戶交互支持
+          // 播放音樂
           const playMusic = () => {
             music.play().catch(e => {
               console.error("音樂播放失敗:", e);
               // 如果自動播放失敗，等待用戶交互後播放
               document.addEventListener('touchstart', () => {
                 music.play().catch(err => console.error("用戶交互後音樂播放失敗:", err));
+              }, { once: true });
+              
+              document.addEventListener('click', () => {
+                music.play().catch(err => console.error("用戶點擊後音樂播放失敗:", err));
               }, { once: true });
             });
           };
@@ -318,29 +346,17 @@
           document.body.style.backgroundColor = '#000';
           
           // 隱藏滾動字幕
-          textContainer.setAttribute('visible', false);
-          
-          // 停止動畫
-          textContainer.removeAttribute('animation');
-          starsEl.removeAttribute('animation');
+          crawlElement.style.display = 'none';
           
           // 停止音樂並重置
           music.pause();
           music.currentTime = 0;
-          
-          // 重置容器位置
-          textContainer.setAttribute('position', '0 -0.8 -0.5');
         });
 
-        // 添加重複播放功能
-        textContainer.addEventListener('animationcomplete', () => {
-          // 動畫完成後重新開始
-          setTimeout(() => {
-            if (textContainer.getAttribute('visible')) {
-              textContainer.setAttribute('position', '0 -0.8 -0.5');
-              textContainer.setAttribute('animation', crawlAnimation);
-            }
-          }, 3000);
+        // 動畫循環重新開始
+        const crawlContainer = document.querySelector('.crawl-container');
+        crawlContainer.addEventListener('animationiteration', () => {
+          console.log('滾動字幕重新開始');
         });
       });
     </script>
