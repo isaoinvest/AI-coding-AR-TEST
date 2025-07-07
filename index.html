@@ -137,6 +137,8 @@
           id="starwars-music" 
           src="https://pub-ac80c6d0a305452bbe0bdfcec65b6a2c.r2.dev/Star%20Wars%20Main%20Title.mp3" 
           preload="auto"
+          crossorigin="anonymous"
+          volume="0.7"
         ></audio>
       </a-assets>
 
@@ -144,23 +146,23 @@
 
       <a-entity id="target0" mindar-image-target="targetIndex: 0">
         <!-- 星際大戰風格滾動字幕容器 -->
-        <a-entity id="text-crawl-container" position="0 -1 0" rotation="-45 0 0" visible="false">
+        <a-entity id="text-crawl-container" position="0 -1 0" rotation="-35 0 0" visible="false">
           <!-- 背景星空效果 -->
           <a-sky color="#000011"></a-sky>
           
           <!-- 滾動字幕文字 -->
           <a-text 
             id="crawl-text"
-            value="很久很久以前，在一個遙遠的銀河系....\n\n\n這是一個充滿希望與創新的時代。\n\n基於 A-Frame 與 MindAR 技術，\n開發者們得以在網頁上建構\n前所未有的擴增實境體驗。\n\n現在，使用者只需透過手機掃描，\n便能喚醒沉睡的數位內容，\n見證虛擬與現實的完美融合。\n\n這段文字將如史詩般展開，\n引領我們進入一個充滿無限可能的\n全新視界。\n\n願原力與你同在..."
+            value="很久很久以前，在一個遙遠的銀河系....\n\n\n這是一個充滿希望與創新的時代。\n\n在這個數位革命的年代，\n科技已經超越了人類的想像。\n\n基於 A-Frame 與 MindAR 技術，\n開發者們得以在網頁上建構\n前所未有的擴增實境體驗。\n\n現在，使用者只需透過手機掃描，\n便能喚醒沉睡的數位內容，\n見證虛擬與現實的完美融合。\n\n這項技術讓平凡的紙張\n瞬間變成了通往另一個世界的入口。\n\n在這個全新的時代裡，\n每個人都可以成為\n數位魔法師的傳承者。\n\n透過簡單的手勢和掃描，\n我們能夠召喚出隱藏在現實中的\n神秘力量和無限可能。\n\n這段文字將如史詩般展開，\n引領我們進入一個充滿無限可能的\n全新視界。\n\n在這個融合了科技與夢想的世界裡，\n每一次的掃描都是一場冒險，\n每一個發現都是一個奇蹟。\n\n讓我們一起踏上這段旅程，\n探索數位與現實交融的奧秘，\n開啟屬於我們的科技傳奇。\n\n願原力與你同在...\n\n願科技的光芒\n照亮我們前進的道路..."
             color="#FFD700"
-            width="4"
+            width="3"
             align="center"
             anchor="center"
-            letter-spacing="1"
-            line-height="80"
-            font="dejavu"
-            wrap-count="25"
-            position="0 -3 0"
+            letter-spacing="0"
+            line-height="70"
+            font="roboto"
+            wrap-count="30"
+            position="0 -4 0"
           >
           </a-text>
           
@@ -187,12 +189,12 @@
         const music = document.querySelector("#starwars-music");
         const starsEl = document.querySelector("#stars");
 
-        // 星際大戰風格滾動動畫配置
+        // 星際大戰風格滾動動畫配置 - 修復抖動問題
         const crawlAnimation = {
           property: 'position',
-          from: '0 -3 0',
-          to: '0 8 -3',
-          dur: 45000,
+          from: '0 -4 0',
+          to: '0 12 -2',
+          dur: 60000,
           easing: 'linear',
         };
 
@@ -222,8 +224,18 @@
           // 開始星光閃爍動畫
           starsEl.setAttribute('animation', starTwinkleAnimation);
           
-          // 播放音樂
-          music.play().catch(e => console.error("音樂播放失敗:", e));
+          // 播放音樂 - 添加用戶交互支持
+          const playMusic = () => {
+            music.play().catch(e => {
+              console.error("音樂播放失敗:", e);
+              // 如果自動播放失敗，等待用戶交互後播放
+              document.addEventListener('touchstart', () => {
+                music.play().catch(err => console.error("用戶交互後音樂播放失敗:", err));
+              }, { once: true });
+            });
+          };
+          
+          playMusic();
         });
 
         // 目標丟失事件
@@ -245,7 +257,7 @@
           music.currentTime = 0;
           
           // 重置文字位置
-          textEl.setAttribute('position', '0 -3 0');
+          textEl.setAttribute('position', '0 -4 0');
         });
 
         // 添加重複播放功能
@@ -253,10 +265,10 @@
           // 動畫完成後重新開始
           setTimeout(() => {
             if (textContainer.getAttribute('visible')) {
-              textEl.setAttribute('position', '0 -3 0');
+              textEl.setAttribute('position', '0 -4 0');
               textEl.setAttribute('animation', crawlAnimation);
             }
-          }, 2000);
+          }, 3000);
         });
       });
     </script>
