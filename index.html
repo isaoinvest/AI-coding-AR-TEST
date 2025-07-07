@@ -325,9 +325,16 @@
             if (!animationRunning) return;
             
             const textElements = document.querySelectorAll('.crawl-text, .title');
+            let allTextGone = true;
+            
             textElements.forEach(textEl => {
               const rect = textEl.getBoundingClientRect();
               const viewportHeight = window.innerHeight;
+              
+              // 檢查是否還有文字在螢幕範圍內
+              if (rect.bottom > 0 && rect.top < viewportHeight) {
+                allTextGone = false;
+              }
               
               // 當文字到達螢幕頂部30%區域時開始淡出
               if (rect.top < viewportHeight * 0.3 && rect.bottom > 0) {
@@ -339,6 +346,20 @@
               }
             });
             
+            // 如果所有文字都消失了，重新開始循環
+            if (allTextGone && animationRunning) {
+              console.log('所有字幕已播放完畢，重新開始');
+              // 重置所有文字透明度
+              textElements.forEach(textEl => {
+                textEl.style.opacity = 1;
+              });
+              // 重新啟動動畫
+              crawlElement.style.animation = 'none';
+              setTimeout(() => {
+                crawlElement.style.animation = 'crawl 35s linear infinite';
+              }, 50);
+            }
+            
             if (animationRunning) {
               requestAnimationFrame(checkTextPosition);
             }
@@ -348,8 +369,13 @@
         }
 
         // 開始播放字幕和音樂
-        function startPlayback() {
+        function startPlayback(hideScanning = false) {
           animationRunning = true;
+          
+          // 如果需要隱藏掃描UI（持續播放模式）
+          if (hideScanning) {
+            document.querySelector('#scanning-overlay').style.display = 'none';
+          }
           
           // 顯示星際大戰滾動字幕
           crawlElement.style.display = 'block';
@@ -375,8 +401,13 @@
         }
 
         // 停止播放
-        function stopPlayback() {
+        function stopPlayback(showScanning = true) {
           animationRunning = false;
+          
+          // 恢復掃描UI顯示
+          if (showScanning) {
+            document.querySelector('#scanning-overlay').style.display = 'flex';
+          }
           
           // 隱藏滾動字幕
           crawlElement.style.display = 'none';
@@ -421,8 +452,8 @@
             continueButton.style.display = 'block';
           }
           
-          // 停止播放
-          stopPlayback();
+          // 停止播放但保持掃描UI
+          stopPlayback(true);
           
           // 重置所有文字透明度以準備下次播放
           const textElements = document.querySelectorAll('.crawl-text, .title');
@@ -438,7 +469,7 @@
           // 隱藏按鈕
           continueButton.style.display = 'none';
           
-          // 改變背景色
+          // 改變背景色，使用與目標檢測相同的亮度
           document.body.style.backgroundColor = 'rgba(0, 50, 100, 0.3)';
           
           // 重置所有文字透明度
@@ -447,8 +478,14 @@
             textEl.style.opacity = 1;
           });
           
-          // 開始播放
-          startPlayback();
+          // 重置動畫到開始狀態
+          crawlElement.style.animation = 'none';
+          setTimeout(() => {
+            crawlElement.style.animation = 'crawl 35s linear infinite';
+          }, 50);
+          
+          // 開始播放並隱藏掃描UI
+          startPlayback(true);
         });
       });
     </script>
