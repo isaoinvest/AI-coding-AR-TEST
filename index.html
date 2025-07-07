@@ -136,7 +136,7 @@
         font-weight: bold;
         line-height: 1.4;
         text-align: center;
-        animation: crawl 60s linear infinite;
+        animation: crawl 80s linear infinite;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 215, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.3);
       }
 
@@ -146,7 +146,7 @@
           transform: translateX(-50%) rotateX(20deg);
         }
         100% {
-          top: -80%;
+          top: -120%;
           transform: translateX(-50%) rotateX(20deg);
         }
       }
@@ -162,11 +162,11 @@
       }
 
       .title {
-        font-size: 30px;
+        font-size: 24px;
         font-weight: bold;
-        margin-bottom: 50px;
-        letter-spacing: 2px;
-        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.4);
+        margin-bottom: 35px;
+        letter-spacing: 0px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 215, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.3);
         word-wrap: break-word;
         overflow-wrap: break-word;
         max-width: 100%;
@@ -319,13 +319,12 @@
         let animationRunning = false;
         let hasFoundTarget = false; // 記錄是否曾經找到過目標
 
-        // 逐行消失效果函數
+        // 逐行消失效果函數（移除自動重置功能）
         function handleIndividualTextFading() {
           const checkTextPosition = () => {
             if (!animationRunning) return;
             
             const textElements = document.querySelectorAll('.crawl-text, .title');
-            const lastElement = textElements[textElements.length - 1];
             const viewportHeight = window.innerHeight;
             const centerY = viewportHeight * 0.5; // 螢幕中央線
             
@@ -345,61 +344,6 @@
                 textEl.style.opacity = 1;
               }
             });
-            
-            // 檢查最後一個元素的狀態
-            const lastRect = lastElement.getBoundingClientRect();
-            const lastElementOpacity = parseFloat(lastElement.style.opacity) || 1;
-            
-            // 更嚴格的重置條件：
-            // 1. 最後一個元素已經完全移出螢幕頂部很遠
-            // 2. 最後一個元素已經完全透明
-            // 3. 動畫已經運行足夠長時間（60秒以上）
-            const currentTime = Date.now();
-            if (!window.animationStartTime) {
-              window.animationStartTime = currentTime;
-            }
-            const animationRunTime = currentTime - window.animationStartTime;
-            
-            const shouldRestart = 
-              lastRect.bottom < -100 && // 最後元素移出螢幕頂部100px以上
-              lastElementOpacity < 0.05 && // 幾乎完全透明
-              animationRunTime > 55000; // 動畫已運行55秒以上
-            
-            if (shouldRestart && animationRunning) {
-              console.log('所有字幕播放完畢，準備重新開始');
-              // 重置時間記錄
-              window.animationStartTime = null;
-              
-              // 停止當前檢測
-              animationRunning = false;
-              
-              // 等待一段時間再重新開始
-              setTimeout(() => {
-                if (crawlElement.style.display === 'block') {
-                  console.log('重新開始字幕循環');
-                  const container = document.querySelector('.crawl-container');
-                  
-                  // 重置所有文字透明度
-                  textElements.forEach(textEl => {
-                    textEl.style.opacity = 1;
-                  });
-                  
-                  // 重新啟動動畫
-                  container.style.animation = 'none';
-                  container.style.top = '100%';
-                  container.style.transform = 'translateX(-50%) rotateX(20deg)';
-                  container.offsetHeight; // 強制重繪
-                  
-                  setTimeout(() => {
-                    container.style.animation = 'crawl 60s linear infinite';
-                    animationRunning = true;
-                    window.animationStartTime = Date.now(); // 重新記錄開始時間
-                    handleIndividualTextFading(); // 重新啟動淡出檢測
-                  }, 100);
-                }
-              }, 2000); // 2秒的透明間隔
-              return;
-            }
             
             if (animationRunning) {
               requestAnimationFrame(checkTextPosition);
