@@ -136,7 +136,7 @@
         font-weight: bold;
         line-height: 1.4;
         text-align: center;
-        animation: crawl 50s linear infinite;
+        animation: crawl 40s linear infinite;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 215, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.3);
       }
 
@@ -149,11 +149,18 @@
         10% {
           opacity: 1;
         }
-        90% {
+        60% {
+          top: 35%;
+          transform: translateX(-50%) rotateX(20deg) scale(0.7);
           opacity: 1;
         }
+        80% {
+          top: 25%;
+          transform: translateX(-50%) rotateX(20deg) scale(0.5);
+          opacity: 0.3;
+        }
         100% {
-          top: -150%;
+          top: 15%;
           transform: translateX(-50%) rotateX(20deg) scale(0.3);
           opacity: 0;
         }
