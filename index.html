@@ -127,12 +127,12 @@
         position: absolute;
         top: 100%;
         left: 50%;
-        width: 95%;
-        max-width: 500px;
+        width: 98%;
+        max-width: 450px;
         transform: translateX(-50%) rotateX(20deg);
         color: #FFD700;
         font-family: 'Arial', 'Microsoft JhengHei', 'PingFang TC', 'Heiti TC', sans-serif;
-        font-size: 32px;
+        font-size: 24px;
         font-weight: bold;
         line-height: 1.4;
         text-align: center;
@@ -160,43 +160,27 @@
       }
 
       .crawl-text {
-        margin: 40px 0;
-        padding: 0 5px;
-        white-space: nowrap;
-        overflow: visible;
+        margin: 35px 0;
+        padding: 0 10px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
       }
 
       .title {
-        font-size: 40px;
+        font-size: 30px;
         font-weight: bold;
-        margin-bottom: 60px;
-        letter-spacing: 4px;
+        margin-bottom: 50px;
+        letter-spacing: 2px;
         text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.4);
-        white-space: nowrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
       }
 
-      /* 偵錯指示器 */
-      .debug-indicator {
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        z-index: 10;
-        background: rgba(0, 0, 0, 0.7);
-        color: #00ffff;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-family: monospace;
-        font-size: 12px;
-        display: none;
-      }
     </style>
 </head>
 <body>
-    <!-- 偵錯指示器 -->
-    <div id="debug-info" class="debug-indicator">
-      狀態: 等待掃描
-    </div>
-
     <div id="scanning-overlay">
       <div class="scanner-inner">
         <div class="scanner-line"></div>
@@ -301,80 +285,40 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        console.log("頁面加載完成");
-        
         const targetEl = document.querySelector("#target0");
         const crawlElement = document.querySelector("#star-wars-crawl");
         const music = document.querySelector("#starwars-music");
-        const debugInfo = document.querySelector("#debug-info");
-        
-        // 顯示偵錯信息
-        debugInfo.style.display = 'block';
-        
-        // 檢查元素是否存在
-        if (!targetEl) {
-          console.error("找不到 target0 元素");
-          debugInfo.textContent = "錯誤: 找不到目標元素";
-          return;
-        }
-        
-        if (!crawlElement) {
-          console.error("找不到滾動字幕元素");
-          return;
-        }
-        
-        if (!music) {
-          console.error("找不到音樂元素");
-        }
-
-        console.log("所有元素已找到，設置事件監聽器");
-        debugInfo.textContent = "狀態: 準備就緒，等待掃描";
 
         // 目標發現事件
         targetEl.addEventListener("targetFound", () => {
-          console.log("【偵錯成功】Target Found 事件已觸發！");
-          debugInfo.textContent = "狀態: 目標已找到！";
+          console.log("Target Found 事件已觸發！");
           
           // 改變背景色作為偵錯標識
           document.body.style.backgroundColor = 'rgba(0, 50, 100, 0.3)';
           
           // 顯示星際大戰滾動字幕
           crawlElement.style.display = 'block';
-          console.log("滾動字幕已顯示");
           
           // 播放音樂
           if (music) {
-            const playMusic = () => {
-              music.currentTime = 0; // 重置音樂到開始
-              music.play().then(() => {
-                console.log("音樂播放成功");
-                debugInfo.textContent = "狀態: 播放中（音樂+字幕）";
-              }).catch(e => {
-                console.error("音樂播放失敗:", e);
-                debugInfo.textContent = "狀態: 播放中（僅字幕）";
-                
-                // 嘗試用戶交互後播放
-                const tryPlayOnInteraction = () => {
-                  music.play().then(() => {
-                    console.log("用戶交互後音樂播放成功");
-                  }).catch(err => {
-                    console.error("用戶交互後音樂播放失敗:", err);
-                  });
-                };
-                
-                document.addEventListener('touchstart', tryPlayOnInteraction, { once: true });
-                document.addEventListener('click', tryPlayOnInteraction, { once: true });
-              });
-            };
-            
-            playMusic();
+            music.currentTime = 0;
+            music.play().catch(e => {
+              console.error("音樂播放失敗:", e);
+              
+              // 嘗試用戶交互後播放
+              const tryPlayOnInteraction = () => {
+                music.play().catch(err => console.error("用戶交互後音樂播放失敗:", err));
+              };
+              
+              document.addEventListener('touchstart', tryPlayOnInteraction, { once: true });
+              document.addEventListener('click', tryPlayOnInteraction, { once: true });
+            });
           }
         });
 
         // 目標丟失事件
         targetEl.addEventListener("targetLost", () => {
           console.log("Target Lost");
-          debugInfo.textContent = "狀態: 目標丟失，等待掃描";
           
           // 恢復透明背景
           document.body.style.backgroundColor = 'transparent';
@@ -386,20 +330,8 @@
           if (music) {
             music.pause();
             music.currentTime = 0;
-            console.log("音樂已停止");
           }
         });
-
-        // MindAR 初始化檢查
-        setTimeout(() => {
-          const scene = document.querySelector('a-scene');
-          if (scene && scene.hasLoaded) {
-            console.log("A-Frame 場景已加載");
-            debugInfo.textContent = "狀態: AR 已初始化，等待掃描";
-          } else {
-            console.log("A-Frame 場景尚未加載完成");
-          }
-        }, 3000);
 
         // 動畫循環重新開始
         const crawlContainer = document.querySelector('.crawl-container');
@@ -408,35 +340,6 @@
             console.log('滾動字幕重新開始');
           });
         }
-
-        // 測試按鈕（開發期間使用）
-        let testButton = null;
-        setTimeout(() => {
-          if (!testButton) {
-            testButton = document.createElement('button');
-            testButton.textContent = '測試字幕';
-            testButton.style.position = 'fixed';
-            testButton.style.bottom = '10px';
-            testButton.style.right = '10px';
-            testButton.style.zIndex = '100';
-            testButton.style.padding = '10px';
-            testButton.style.backgroundColor = '#00ffff';
-            testButton.style.border = 'none';
-            testButton.style.borderRadius = '5px';
-            testButton.onclick = () => {
-              if (crawlElement.style.display === 'none' || !crawlElement.style.display) {
-                crawlElement.style.display = 'block';
-                testButton.textContent = '隱藏字幕';
-                debugInfo.textContent = "狀態: 測試模式";
-              } else {
-                crawlElement.style.display = 'none';
-                testButton.textContent = '測試字幕';
-                debugInfo.textContent = "狀態: 等待掃描";
-              }
-            };
-            document.body.appendChild(testButton);
-          }
-        }, 2000);
       });
     </script>
 </body>
