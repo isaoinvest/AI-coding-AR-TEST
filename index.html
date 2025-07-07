@@ -121,6 +121,9 @@
         display: none;
         perspective: 800px;
         pointer-events: none;
+        /* 添加遮罩漸層，讓頂部字幕自然消失 */
+        -webkit-mask: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+        mask: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
       }
 
       .crawl-container {
@@ -136,7 +139,7 @@
         font-weight: bold;
         line-height: 1.4;
         text-align: center;
-        animation: crawl 60s linear infinite;
+        animation: crawl 35s linear infinite;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 215, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.3);
       }
 
@@ -144,25 +147,10 @@
         0% {
           top: 100%;
           transform: translateX(-50%) rotateX(20deg) scale(1);
-          opacity: 0;
-        }
-        5% {
-          opacity: 1;
-        }
-        75% {
-          top: 33%;
-          transform: translateX(-50%) rotateX(20deg) scale(0.8);
-          opacity: 1;
-        }
-        90% {
-          top: 20%;
-          transform: translateX(-50%) rotateX(20deg) scale(0.6);
-          opacity: 0.3;
         }
         100% {
-          top: 10%;
+          top: -20%;
           transform: translateX(-50%) rotateX(20deg) scale(0.4);
-          opacity: 0;
         }
       }
 
