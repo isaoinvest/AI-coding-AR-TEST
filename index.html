@@ -156,11 +156,11 @@
       @keyframes crawl {
         0% {
           top: 100%;
-          transform: translateX(-50%) rotateX(20deg) scale(1);
+          transform: translateX(-50%) rotateX(20deg);
         }
         100% {
-          top: -20%;
-          transform: translateX(-50%) rotateX(20deg) scale(0.4);
+          top: -50%;
+          transform: translateX(-50%) rotateX(20deg);
         }
       }
 
@@ -293,44 +293,36 @@
         const targetEl = document.querySelector("#target0");
         const crawlElement = document.querySelector("#star-wars-crawl");
         const music = document.querySelector("#starwars-music");
+        let animationRunning = false;
 
         // 逐行消失效果函數
         function handleIndividualTextFading() {
           const textElements = document.querySelectorAll('.crawl-text, .title');
           
           const checkTextPosition = () => {
+            if (!animationRunning) return;
+            
             textElements.forEach(textEl => {
               const rect = textEl.getBoundingClientRect();
               const viewportHeight = window.innerHeight;
               
-              // 當文字到達螢幕頂部25%區域時開始淡出
-              if (rect.top < viewportHeight * 0.25) {
-                const fadeProgress = Math.max(0, rect.top / (viewportHeight * 0.25));
+              // 當文字到達螢幕頂部30%區域時開始淡出
+              if (rect.top < viewportHeight * 0.3) {
+                const fadeProgress = Math.max(0, rect.top / (viewportHeight * 0.3));
                 textEl.style.opacity = fadeProgress;
               } else {
-                textEl.style.opacity = 1;
-              }
-              
-              // 當文字完全超出螢幕頂部時，重置透明度為準備下次循環
-              if (rect.bottom < 0) {
+                // 確保在可見區域的文字完全不透明
                 textEl.style.opacity = 1;
               }
             });
+            
+            if (animationRunning) {
+              requestAnimationFrame(checkTextPosition);
+            }
           };
 
-          // 使用 requestAnimationFrame 來平滑更新
-          function animationLoop() {
-            if (crawlElement.style.display === 'block') {
-              checkTextPosition();
-            }
-            requestAnimationFrame(animationLoop);
-          }
-          
-          animationLoop();
+          checkTextPosition();
         }
-
-        // 初始化逐行淡出效果
-        handleIndividualTextFading();
 
         // 目標發現事件
         targetEl.addEventListener("targetFound", () => {
@@ -341,6 +333,16 @@
           
           // 顯示星際大戰滾動字幕
           crawlElement.style.display = 'block';
+          animationRunning = true;
+          
+          // 重置所有文字透明度
+          const textElements = document.querySelectorAll('.crawl-text, .title');
+          textElements.forEach(textEl => {
+            textEl.style.opacity = 1;
+          });
+          
+          // 啟動逐行淡出效果
+          handleIndividualTextFading();
           
           // 播放音樂
           if (music) {
@@ -363,11 +365,20 @@
         targetEl.addEventListener("targetLost", () => {
           console.log("Target Lost");
           
+          // 停止動畫檢測
+          animationRunning = false;
+          
           // 恢復透明背景
           document.body.style.backgroundColor = 'transparent';
           
           // 隱藏滾動字幕
           crawlElement.style.display = 'none';
+          
+          // 重置所有文字透明度
+          const textElements = document.querySelectorAll('.crawl-text, .title');
+          textElements.forEach(textEl => {
+            textEl.style.opacity = 1;
+          });
           
           // 停止音樂並重置
           if (music) {
@@ -375,19 +386,6 @@
             music.currentTime = 0;
           }
         });
-
-        // 動畫循環重新開始
-        const crawlContainer = document.querySelector('.crawl-container');
-        if (crawlContainer) {
-          crawlContainer.addEventListener('animationiteration', () => {
-            console.log('滾動字幕重新開始');
-            // 重置所有文字透明度
-            const textElements = document.querySelectorAll('.crawl-text, .title');
-            textElements.forEach(textEl => {
-              textEl.style.opacity = 1;
-            });
-          });
-        }
       });
     </script>
 </body>
