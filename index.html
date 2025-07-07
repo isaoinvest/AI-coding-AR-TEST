@@ -8,15 +8,15 @@
     <script src="https://cdn.jsdelivr.net/gh/isaoinvest/ar-libs/mindar-image-aframe.prod.js"></script>
 
     <style>
-      /* CSS 樣式保持不變 */
       body {
         margin: 0;
         overflow: hidden;
         width: 100vw;
         height: 100vh;
-        /* 為了偵錯，我們讓背景色的變化更明顯 */
+        background-color: #000;
         transition: background-color 0.5s;
       }
+      
       #scanning-overlay {
         position: fixed;
         top: 0;
@@ -32,9 +32,11 @@
         opacity: 1;
         transition: opacity 0.3s;
       }
+      
       #scanning-overlay.hidden {
         opacity: 0;
       }
+      
       .scanner-inner {
         width: 200px;
         height: 200px;
@@ -44,7 +46,67 @@
         overflow: hidden;
         box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
       }
-      /* 其他 CSS ... */
+      
+      .scanner-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00ffff, transparent);
+        animation: scannerMove 2s linear infinite;
+      }
+      
+      @keyframes scannerMove {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(196px); }
+      }
+      
+      .corner {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #00ffff;
+      }
+      
+      .corner-top-left {
+        top: 10px;
+        left: 10px;
+        border-right: none;
+        border-bottom: none;
+      }
+      
+      .corner-top-right {
+        top: 10px;
+        right: 10px;
+        border-left: none;
+        border-bottom: none;
+      }
+      
+      .corner-bottom-left {
+        bottom: 10px;
+        left: 10px;
+        border-right: none;
+        border-top: none;
+      }
+      
+      .corner-bottom-right {
+        bottom: 10px;
+        right: 10px;
+        border-left: none;
+        border-top: none;
+      }
+      
+      .scanning-text {
+        position: absolute;
+        bottom: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #00ffff;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        white-space: nowrap;
+      }
     </style>
 </head>
 <body>
@@ -81,20 +143,38 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity id="target0" mindar-image-target="targetIndex: 0">
-        <a-entity id="text-crawl-container" position="0 -0.5 0" rotation="-60 0 0" visible="false">
+        <!-- 星際大戰風格滾動字幕容器 -->
+        <a-entity id="text-crawl-container" position="0 -1 0" rotation="-45 0 0" visible="false">
+          <!-- 背景星空效果 -->
+          <a-sky color="#000011"></a-sky>
+          
+          <!-- 滾動字幕文字 -->
           <a-text 
             id="crawl-text"
-            value="很久很久以前，在一個遙遠的銀河系....\n\n這是一個充滿希望與創新的時代。\n\n基於 A-Frame 與 MindAR 技術，開發者們得以在網頁上建構前所未有的擴增實境體驗。\n\n現在，使用者只需透過手機掃描，便能喚醒沉睡的數位內容，見證虛擬與現實的完美融合。\n\n這段文字將如史詩般展開，引領我們進入一個充滿無限可能的全新視界。"
-            color="#FFFF00"
-            width="2"
+            value="很久很久以前，在一個遙遠的銀河系....\n\n\n這是一個充滿希望與創新的時代。\n\n基於 A-Frame 與 MindAR 技術，\n開發者們得以在網頁上建構\n前所未有的擴增實境體驗。\n\n現在，使用者只需透過手機掃描，\n便能喚醒沉睡的數位內容，\n見證虛擬與現實的完美融合。\n\n這段文字將如史詩般展開，\n引領我們進入一個充滿無限可能的\n全新視界。\n\n願原力與你同在..."
+            color="#FFD700"
+            width="4"
             align="center"
             anchor="center"
-            letter-spacing="2"
-            line-height="60"
-            font="https://raw.githubusercontent.com/etiennepinchon/aframe-fonts/master/fonts/notosans/notosans.json"
-            negate="false"
+            letter-spacing="1"
+            line-height="80"
+            font="dejavu"
+            wrap-count="25"
+            position="0 -3 0"
           >
           </a-text>
+          
+          <!-- 添加星光效果 -->
+          <a-entity id="stars">
+            <a-sphere position="2 4 -8" radius="0.02" color="#FFFFFF" opacity="0.8"></a-sphere>
+            <a-sphere position="-3 3 -10" radius="0.02" color="#FFFFFF" opacity="0.6"></a-sphere>
+            <a-sphere position="4 2 -12" radius="0.02" color="#FFFFFF" opacity="0.9"></a-sphere>
+            <a-sphere position="-2 5 -9" radius="0.02" color="#FFFFFF" opacity="0.7"></a-sphere>
+            <a-sphere position="1 6 -11" radius="0.02" color="#FFFFFF" opacity="0.5"></a-sphere>
+            <a-sphere position="-4 1 -13" radius="0.02" color="#FFFFFF" opacity="0.8"></a-sphere>
+            <a-sphere position="3 -1 -15" radius="0.02" color="#FFFFFF" opacity="0.6"></a-sphere>
+            <a-sphere position="-1 7 -14" radius="0.02" color="#FFFFFF" opacity="0.7"></a-sphere>
+          </a-entity>
         </a-entity>
       </a-entity>
     </a-scene>
@@ -105,34 +185,78 @@
         const textContainer = document.querySelector("#text-crawl-container");
         const textEl = document.querySelector("#crawl-text");
         const music = document.querySelector("#starwars-music");
+        const starsEl = document.querySelector("#stars");
 
-        const animationConfig = {
+        // 星際大戰風格滾動動畫配置
+        const crawlAnimation = {
           property: 'position',
-          from: '0 -2 -2',
-          to: '0 2 -6',
-          dur: 40000,
+          from: '0 -3 0',
+          to: '0 8 -3',
+          dur: 45000,
           easing: 'linear',
         };
 
+        // 星光閃爍動畫
+        const starTwinkleAnimation = {
+          property: 'rotation',
+          from: '0 0 0',
+          to: '360 360 360',
+          dur: 20000,
+          easing: 'linear',
+          loop: true
+        };
+
+        // 目標發現事件
         targetEl.addEventListener("targetFound", () => {
-          // 【偵錯點】如果程式能執行到這裡，整個背景會變成紅色！
-          document.body.style.backgroundColor = 'red';
-          
           console.log("偵錯成功：Target Found 事件已觸發！");
+          
+          // 改變背景色作為偵錯標識
+          document.body.style.backgroundColor = '#001122';
+          
+          // 顯示滾動字幕容器
           textContainer.setAttribute('visible', true);
-          textEl.setAttribute('animation', animationConfig);
+          
+          // 開始文字滾動動畫
+          textEl.setAttribute('animation', crawlAnimation);
+          
+          // 開始星光閃爍動畫
+          starsEl.setAttribute('animation', starTwinkleAnimation);
+          
+          // 播放音樂
           music.play().catch(e => console.error("音樂播放失敗:", e));
         });
 
+        // 目標丟失事件
         targetEl.addEventListener("targetLost", () => {
-          // 【偵錯點】當目標丟失時，背景會變回黑色
-          document.body.style.backgroundColor = 'black';
-          
           console.log("Target Lost");
+          
+          // 恢復背景色
+          document.body.style.backgroundColor = '#000';
+          
+          // 隱藏滾動字幕
           textContainer.setAttribute('visible', false);
+          
+          // 停止動畫
           textEl.removeAttribute('animation');
+          starsEl.removeAttribute('animation');
+          
+          // 停止音樂並重置
           music.pause();
           music.currentTime = 0;
+          
+          // 重置文字位置
+          textEl.setAttribute('position', '0 -3 0');
+        });
+
+        // 添加重複播放功能
+        textEl.addEventListener('animationcomplete', () => {
+          // 動畫完成後重新開始
+          setTimeout(() => {
+            if (textContainer.getAttribute('visible')) {
+              textEl.setAttribute('position', '0 -3 0');
+              textEl.setAttribute('animation', crawlAnimation);
+            }
+          }, 2000);
         });
       });
     </script>
