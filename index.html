@@ -127,14 +127,14 @@
         position: absolute;
         top: 100%;
         left: 50%;
-        width: 90%;
-        max-width: 400px;
+        width: 95%;
+        max-width: 500px;
         transform: translateX(-50%) rotateX(20deg);
         color: #FFD700;
         font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
-        font-size: 24px;
+        font-size: 32px;
         font-weight: bold;
-        line-height: 1.6;
+        line-height: 1.4;
         text-align: center;
         animation: crawl 50s linear infinite;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 215, 0, 0.6);
@@ -153,15 +153,18 @@
 
       .crawl-text {
         margin: 40px 0;
-        padding: 0 15px;
+        padding: 0 5px;
+        white-space: nowrap;
+        overflow: visible;
       }
 
       .title {
-        font-size: 32px;
+        font-size: 40px;
         font-weight: bold;
         margin-bottom: 60px;
         letter-spacing: 4px;
         text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 215, 0, 0.8);
+        white-space: nowrap;
       }
     </style>
 </head>
@@ -254,7 +257,7 @@
       <a-assets>
         <audio 
           id="starwars-music" 
-          src="https://pub-ac80c6d0a305452bbe0bdfcec65b6a2c.r2.dev/Star%20Wars%20Main%20Title.mp3" 
+          src="https://pub-ac80c6d0a305452bbe0bdfcec65b6a2c.r2.dev/starwar%20music.mp4" 
           preload="auto"
           crossorigin="anonymous"
           volume="0.7"
@@ -264,8 +267,7 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity id="target0" mindar-image-target="targetIndex: 0">
-        <!-- 簡化的 AR 內容，主要功能移到 CSS 滾動字幕 -->
-        <a-sphere position="0 0 -1" radius="0.1" color="#FFD700" opacity="0.8"></a-sphere>
+        <!-- AR 目標檢測元素，不顯示任何視覺內容 -->
       </a-entity>
     </a-scene>
 
