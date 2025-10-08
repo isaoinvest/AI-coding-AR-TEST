@@ -235,8 +235,15 @@
       device-orientation-permission-ui="enabled: false"
       loading-screen="enabled: true; dotsColor: #fff; backgroundColor: #000"
     >
+      <a-camera
+        position="0 0 0"
+        look-controls="enabled: false"
+        cursor="fuse: false; rayOrigin: mouse;"
+        raycaster="far: 10000; objects: .clickable"
+      ></a-camera>
+
       <a-assets>
-        <!-- 影片資源 1: SCREEN1.mp4 (用於目標 0) -->
+        <!-- 影片資源 1: SCREEN1.mp4 (用於目標 0, 直式 9:16) -->
         <video
           id="video1"
           src="https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/SCREEN1.mp4"
@@ -248,7 +255,7 @@
           muted
         ></video>
 
-        <!-- 影片資源 2: SCREEN2.mp4 (用於目標 1) -->
+        <!-- 影片資源 2: SCREEN2.mp4 (用於目標 1, 橫式 16:9) -->
         <video
           id="video2"
           src="https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/SCREEN2.mp4"
@@ -261,18 +268,11 @@
         ></video>
       </a-assets>
 
-      <a-camera
-        position="0 0 0"
-        look-controls="enabled: false"
-        cursor="fuse: false; rayOrigin: mouse;"
-        raycaster="far: 10000; objects: .clickable"
-      ></a-camera>
-
-      <!-- 目標 0 實體 (Target Index 0) -->
+      <!-- 目標 0 實體 (Target Index 0) - 直式 9:16 (寬度/高度 = 0.5625) -->
       <a-entity
         id="target0"
         mindar-image-target="targetIndex: 0"
-        data-target-aspect-ratio="1.414"
+        data-target-aspect-ratio="0.5625" 
         fit-video-to-target
       >
         <a-video
@@ -281,15 +281,15 @@
           position="0 0 0"
           rotation="0 0 0"
           loop="true"
-          visible="false" <!-- 預設隱藏，只在目標被追蹤時顯示 -->
+          visible="false" 
         ></a-video>
       </a-entity>
       
-      <!-- 目標 1 實體 (Target Index 1) -->
+      <!-- 目標 1 實體 (Target Index 1) - 橫式 16:9 (寬度/高度 ≈ 1.7778) -->
       <a-entity
         id="target1"
         mindar-image-target="targetIndex: 1"
-        data-target-aspect-ratio="1.414"
+        data-target-aspect-ratio="1.7778" 
         fit-video-to-target
       >
         <a-video
@@ -298,7 +298,7 @@
           position="0 0 0"
           rotation="0 0 0"
           loop="true"
-          visible="false" <!-- 預設隱藏，只在目標被追蹤時顯示 -->
+          visible="false"
         ></a-video>
       </a-entity>
     </a-scene>
@@ -307,17 +307,32 @@
       // A-Frame 影片比例調整元件
       AFRAME.registerComponent("fit-video-to-target", {
         init: function () {
+          const videoEntity = this.el.querySelector("a-video");
+          if (!videoEntity) return;
+
           this.el.addEventListener("targetFound", () => {
-            const videoEntity = this.el.querySelector("a-video");
-            if (!videoEntity) return;
+            // 從父級實體 (a-entity) 獲取設定的長寬比
+            const ratio = parseFloat(this.el.dataset.targetAspectRatio);
             
-            // 獲取 target-aspect-ratio
-            const ratio = parseFloat(this.el.dataset.targetAspectRatio) || 1.0;
-            if (ratio > 0) {
+            // 檢查 ratio 是否有效
+            if (!isNaN(ratio) && ratio > 0) {
+              // MindAR 預設目標大小的寬度為 1 單位
+              const targetWidth = 1; 
+              // 影片高度 = 寬度 / 比例
+              const targetHeight = targetWidth / ratio;
+              
+              // 設置 a-video 的 geometry 屬性
               videoEntity.setAttribute("geometry", {
-                width: 1,
-                height: 1 / ratio
+                width: targetWidth,
+                height: targetHeight
               });
+              
+              // 將影片的 y 軸位置調整為高度的一半，使其垂直居中在目標平面上 (如果 MindAR 的 plane 是 1x1 則不需要，但為了保險起見保持 0 0 0 即可)
+              // videoEntity.setAttribute("position", `0 ${targetHeight / 2} 0.001`); // 稍微抬升一點避免 z-fighting
+              videoEntity.setAttribute("position", "0 0 0");
+              
+            } else {
+              console.error("Invalid aspect ratio set on target entity:", ratio);
             }
           });
         }
@@ -548,6 +563,7 @@
 
         // 處理目標丟失
         function handleTargetLost() {
+          // 在目標丟失時，只將 targetFoundIndex 設為 -1，讓計時器知道要隱藏控制項
           state.targetFoundIndex = -1;
           
           // 暫停 AR 影片（但保留全螢幕播放）
@@ -556,6 +572,7 @@
             
             // 延遲顯示掃描疊層，防止閃爍
             setTimeout(() => {
+              // 再次檢查狀態，避免在短時間內重新找到目標時又顯示掃描疊層
               if (state.targetFoundIndex === -1 && !state.fullscreen) {
                 scanningOverlay.classList.remove("hidden");
                 hideControls();
@@ -580,13 +597,12 @@
 
         // 重設計時器
         function resetControlsTimer() {
+            // 只有在目標被追蹤或全螢幕模式下才啟用計時
             if (state.fullscreen || state.targetFoundIndex !== -1) {
-                // 在 AR 或全螢幕模式下才啟用計時
                 showControls(); // 確保每次互動都先顯示
                 clearTimeout(controlsTimeout);
                 controlsTimeout = setTimeout(() => {
-                    // 只有在播放中且不在全螢幕時才隱藏（全螢幕時預設不隱藏以方便退出）
-                    // 為了簡化，在 AR 模式下統一隱藏
+                    // 只有在播放中時才自動隱藏
                     if (state.isPlaying) {
                         hideControls();
                     }
@@ -610,7 +626,8 @@
           if (e.target === fullscreenContainer || e.target === fullscreenVideo) {
             toggleFullscreen();
           }
-          resetControlsTimer();
+          // 重設計時器以防控制項被立即隱藏
+          resetControlsTimer(); 
         });
 
         // 影片進度更新
@@ -638,7 +655,7 @@
           if (document.hidden) {
             pauseVideo(video);
           } else {
-            // 只有在目標被發現或全螢幕且之前正在播放時才恢復
+            // 只有在之前正在播放時才恢復
             if (state.isPlaying) {
               playVideo(video);
             }
