@@ -3,435 +3,665 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AR 蒼月花園</title>
-    
-    <!-- A-Frame & MindAR -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="preconnect" href="https://aframe.io" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
-    
-    <!-- Tailwind for UI -->
-    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-      body { margin: 0; overflow: hidden; }
-      
-      /* 掃描介面 */
+      body {
+        margin: 0;
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+        /* 確保全螢幕影片在背景 */
+        background-color: black;
+      }
+
+      /* 掃描 UI */
       #scanning-overlay {
         position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 10;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: rgba(0, 0, 0, 0.3);
         pointer-events: none;
-        transition: opacity 0.5s;
-      }
-      #scanning-overlay.hidden { opacity: 0; }
-      
-      .scanner-frame {
-        width: 200px; height: 200px;
-        border: 2px solid rgba(100, 200, 255, 0.5);
-        border-radius: 16px;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 0 15px rgba(0, 150, 255, 0.3);
-      }
-      
-      .scanner-line {
-        position: absolute;
-        height: 4px; width: 100%;
-        background: linear-gradient(90deg, transparent, #00ffff, transparent);
-        animation: scan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        box-shadow: 0 0 10px #00ffff;
-      }
-      
-      @keyframes scan {
-        0% { transform: translateY(-10px); }
-        100% { transform: translateY(210px); }
+        background-color: rgba(0, 0, 0, 0.1);
+        transition: opacity 0.3s;
+        color: white;
+        font-family: 'Inter', sans-serif;
+        text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
       }
 
-      /* UI 控制層 (上傳按鈕) */
-      #ui-layer {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 20;
-        pointer-events: auto; /* 允許點擊 */
+      #scanning-overlay.hidden {
+        opacity: 0;
+      }
+
+      .scanner-frame {
+        width: 180px;
+        height: 180px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-radius: 10px;
+        position: relative;
+        overflow: hidden; /* 確保掃描線不溢出 */
+      }
+
+      .scanner-line {
+        position: absolute;
+        height: 2px;
+        width: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.8), transparent);
+        animation: scan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        box-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+      }
+
+      @keyframes scan {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(calc(180px - 2px)); } /* 掃描線從頂部到底部 */
+        100% { transform: translateY(0); }
       }
       
-      .hint-text {
+      .scan-text {
+        margin-top: 15px;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      /* 控制按鈕容器 - 新增自動隱藏的過渡效果 */
+      .controls-container {
         position: fixed;
-        bottom: 30px;
-        width: 100%;
-        text-align: center;
-        color: rgba(200, 230, 255, 0.8);
-        font-size: 14px;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        display: flex;
+        gap: 15px;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s;
+      }
+
+      .controls-container.hidden {
+        opacity: 0;
         pointer-events: none;
-        z-index: 15;
+        visibility: hidden;
+      }
+
+      .icon-button {
+        width: 48px;
+        height: 48px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border: none; /* 移除邊框以簡化設計 */
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      
+      .icon-button:active {
+        transform: scale(0.95);
+        background-color: rgba(0, 0, 0, 0.9);
+      }
+      
+      .icon-button.active {
+        background-color: rgba(0, 195, 255, 0.4);
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+      }
+
+      .icon-button svg {
+        width: 24px;
+        height: 24px;
+        fill: white;
+      }
+
+      /* 進度條 */
+      .progress-container {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        z-index: 1000;
+        overflow: hidden;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s;
+      }
+
+      .progress-container.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: rgba(0, 255, 255, 0.8);
+        width: 0%;
+        transition: width 0.2s linear;
+      }
+
+      /* 全螢幕影片 */
+      #fullscreen-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 999;
+        display: none;
+        background-color: rgba(0, 0, 0, 0.95);
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      #fullscreen-container.visible {
+        display: flex;
+      }
+      
+      #fullscreen-video {
+        max-width: 100%;
+        max-height: 100%;
       }
     </style>
   </head>
   <body>
-    
-    <!-- 掃描提示 -->
+    <div class="controls-container" id="controls-container">
+      <button class="icon-button" id="play-button">
+        <svg viewBox="0 0 24 24" id="play-icon">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        <svg viewBox="0 0 24 24" id="pause-icon" style="display:none;">
+          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+        </svg>
+      </button>
+      
+      <button class="icon-button" id="sound-button">
+        <svg viewBox="0 0 24 24" id="sound-on-icon" style="display:none;">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+        <svg viewBox="0 0 24 24" id="sound-off-icon">
+          <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+        </svg>
+      </button>
+
+      <button class="icon-button" id="fullscreen-button">
+        <svg viewBox="0 0 24 24">
+          <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="progress-container" id="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
     <div id="scanning-overlay">
       <div class="scanner-frame">
         <div class="scanner-line"></div>
       </div>
-      <div class="mt-4 text-cyan-200 font-bold text-shadow">請掃描目標圖像</div>
+      <div class="scan-text">請掃描目標影像</div>
+    </div>
+    
+    <div id="fullscreen-container">
+      <video id="fullscreen-video" playsinline webkit-playsinline></video>
     </div>
 
-    <!-- UI 按鈕區 -->
-    <div id="ui-layer">
-       <label class="flex items-center gap-2 bg-blue-900/80 backdrop-blur border border-blue-500 px-4 py-2 rounded-full text-white text-sm cursor-pointer shadow-lg hover:bg-blue-800 transition">
-          <span>📂</span>
-          <span>更換花朵貼圖</span>
-          <input type="file" id="texture-upload" accept="image/*" class="hidden" />
-       </label>
-    </div>
-
-    <div class="hint-text" id="hint-text">
-      發現目標！點擊螢幕種植花朵 🌱
-    </div>
-
-    <!-- AR 場景 -->
     <a-scene
-      mindar-image="imageTargetSrc: https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/targets.mind; 
-                    warmupTolerance: 5; 
-                    missTolerance: 5;
-                    filterMinCF: 0.0001; 
-                    filterBeta: 0.001;
+      mindar-image="imageTargetSrc: https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/targets.mind;
+                    warmupTolerance: 5;
+                    missTolerance: 10;
+                    filterMinCF: 0.000001; 
+                    filterBeta: 250;
                     uiScanning: #scanning-overlay;"
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
+      loading-screen="enabled: true; dotsColor: #fff; backgroundColor: #000"
     >
+      <a-camera
+        position="0 0 0"
+        look-controls="enabled: false"
+        cursor="fuse: false; rayOrigin: mouse;"
+        raycaster="far: 10000; objects: .clickable"
+      ></a-camera>
+
       <a-assets>
-        <!-- 這裡不需要影片資源了 -->
+        <video
+          id="video1"
+          src="https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/SCREEN1.mp4"
+          preload="auto"
+          loop
+          crossorigin="anonymous"
+          playsinline
+          webkit-playsinline
+          muted
+        ></video>
+
+        <video
+          id="video2"
+          src="https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/SCREEN2.mp4"
+          preload="auto"
+          loop
+          crossorigin="anonymous"
+          playsinline
+          webkit-playsinline
+          muted
+        ></video>
       </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-      <!-- 目標 0: 連結到我們的花園組件 -->
-      <a-entity id="target0" mindar-image-target="targetIndex: 0">
-        <!-- 花園實體：包含所有 3D 邏輯 -->
-        <!-- scale 設為 0.5 是為了讓 100單位的花園縮小放入 AR 世界，但我們會調整內部花朵大小 -->
-        <a-entity flower-garden="targetIndex: 0"></a-entity>
-      </a-entity>
-
-      <!-- 目標 1 (如果需要也可加上花園) -->
-      <a-entity id="target1" mindar-image-target="targetIndex: 1">
-        <a-entity flower-garden="targetIndex: 1"></a-entity>
+      <a-entity
+        id="target0"
+        mindar-image-target="targetIndex: 0"
+        data-target-aspect-ratio="0.6667" 
+        fit-video-to-target
+      >
+        <a-video
+          id="video0-entity"
+          src="#video1"
+          position="0 0 0.001" rotation="0 0 0"
+          loop="true"
+          visible="false" 
+        ></a-video>
       </a-entity>
       
+      <a-entity
+        id="target1"
+        mindar-image-target="targetIndex: 1"
+        data-target-aspect-ratio="1.5" 
+        fit-video-to-target
+      >
+        <a-video
+          id="video1-entity"
+          src="#video2"
+          position="0 0 0.001" rotation="0 0 0"
+          loop="true"
+          visible="false"
+        ></a-video>
+      </a-entity>
     </a-scene>
 
     <script>
-      // --- 蒼月花園核心邏輯 (移植自 React 版本) ---
-      
-      // 全局變數儲存當前貼圖
-      window.currentFlowerTexture = null;
-      const DEFAULT_TEXTURE_URL = 'https://isaoinvest.com/wp-content/uploads/2025/12/Gemini_Generated_Image_5buuxi5buuxi5buu.png';
+      // 放大係數，讓影片比目標圖像稍微大一點點 (1.025 = 2.5% 放大)
+      const SCALE_FACTOR = 1.025; 
+      // 修正目標的 aspect-ratio 值，確保與註釋中的影片比例一致。
+      const TARGET_0_ASPECT_RATIO = 12 / 18; // 0.6667
+      const TARGET_1_ASPECT_RATIO = 18 / 15; // 1.5
 
-      // 定義 Flower 類別 (純 JS 版)
-      class Flower {
-        constructor(x, z, texture, groupParent, sharedGeos) {
-          this.x = x;
-          this.z = z;
-          this.age = 0;
-          this.isAlive = true;
-          this.speed = 1.0 + Math.random() * 0.5; // 生長速度
-          this.lifetime = 8 + Math.random() * 5;
-          this.baseColor = new THREE.Color().setHSL(0.58 + Math.random() * 0.1, 0.8, 0.6);
-          this.texture = texture;
-          this.materials = [];
-          this.sharedGeos = sharedGeos;
-          this.parent = groupParent;
-          
-          this.create();
-        }
+      // A-Frame 影片比例調整元件
+      AFRAME.registerComponent("fit-video-to-target", {
+        init: function () {
+          const videoEntity = this.el.querySelector("a-video");
+          if (!videoEntity) return;
 
-        create() {
-          this.group = new THREE.Group();
-          this.group.position.set(this.x, 0, this.z);
-          
-          // --- 尺寸調整：讓花朵在 AR 中看起來更大 ---
-          // 原本是 scale 1，現在我們將基礎大小放大
-          const BIG_SCALE = 0.3; // 相對於目標寬度 1，這已經很大了
-          this.group.scale.setScalar(BIG_SCALE); 
-          
-          this.group.rotation.y = Math.random() * Math.PI * 2;
-
-          // 莖
-          const stemMat = new THREE.MeshStandardMaterial({ color: 0x1a332a, roughness: 0.7, transparent: true });
-          this.materials.push(stemMat);
-          const stem = new THREE.Mesh(this.sharedGeos.stem, stemMat);
-          stem.castShadow = true;
-          this.group.add(stem);
-
-          // 葉
-          const leafMat = new THREE.MeshStandardMaterial({ color: 0x2a4d3a, side: THREE.DoubleSide, transparent: true });
-          this.materials.push(leafMat);
-          for(let i=0; i<2; i++) {
-              const leaf = new THREE.Mesh(this.sharedGeos.leaf, leafMat);
-              leaf.position.set((i%2?-1:1)*0.15, 0.8+i*0.8, 0);
-              leaf.rotation.z = (i%2?-1:1)*0.6;
-              leaf.rotation.y = Math.random()*0.5;
-              this.group.add(leaf);
-          }
-
-          // 花瓣
-          const petalMat = new THREE.MeshStandardMaterial({ 
-              color: this.texture ? 0xffffff : this.baseColor, 
-              map: this.texture || null,
-              side: THREE.DoubleSide, 
-              transparent: true, 
-              alphaTest: 0.05,
-              depthWrite: false,
-              emissive: this.texture ? 0x000000 : this.baseColor,
-              emissiveIntensity: 0.3
-          });
-          this.materials.push(petalMat);
-          this.petalMat = petalMat;
-
-          for(let i=0; i<10; i++) {
-              const angle = (i/10) * Math.PI * 2;
-              const petal = new THREE.Mesh(this.sharedGeos.petal, petalMat);
-              petal.userData = { angle, layer: i%2 };
-              this.group.add(petal);
-          }
-
-          // 花蕊 (發光)
-          const centerMat = new THREE.MeshStandardMaterial({ 
-              color: 0x88ccff,
-              emissive: 0x004488,
-              emissiveIntensity: 1.5,
-              transparent: true 
-          });
-          this.materials.push(centerMat);
-          const center = new THREE.Mesh(this.sharedGeos.center, centerMat);
-          this.group.add(center);
-
-          this.parent.add(this.group);
-        }
-
-        update(dt, time) {
-          if (!this.isAlive) return false;
-          this.age += dt * this.speed;
-          
-          let scale = 1, h = 3, op = 1;
-          
-          // 基礎大小 (配合 create 中的放大係數)
-          const BASE_SCALE = 0.3;
-
-          if (this.age < 1.5) { 
-              const t = this.age / 1.5;
-              scale = t * (2-t); h = t * 3;
-          } else if (this.age < this.lifetime) { 
-              // 風場效果
-              const windX = Math.sin(time * 1.0 + this.x * 2.0) * 0.1;
-              const windZ = Math.cos(time * 0.8 + this.z * 2.0) * 0.1;
-              this.group.rotation.z = windX;
-              this.group.rotation.x = windZ;
+          this.el.addEventListener("targetFound", () => {
+            // 從父級實體 (a-entity) 獲取設定的長寬比
+            const ratio = parseFloat(this.el.dataset.targetAspectRatio);
+            
+            // 檢查 ratio 是否有效
+            if (!isNaN(ratio) && ratio > 0) {
+              // MindAR 預設目標大小的寬度為 1 單位
+              const targetWidth = 1; 
+              // 影片高度 = 寬度 / 比例
+              const targetHeight = targetWidth / ratio;
               
-              h = 3 + Math.sin(this.age * 2) * 0.05;
-          } else { 
-              const t = (this.age - this.lifetime) / 2;
-              if (t >= 1) { this.isAlive = false; return false; }
-              scale = 1 - t*0.2; h = 3*(1-t*0.1); op = 1-t;
-              this.group.position.y = -t * 0.2; // 緩慢下沉
-          }
+              // 應用放大係數
+              const scaledWidth = targetWidth * SCALE_FACTOR;
+              const scaledHeight = targetHeight * SCALE_FACTOR;
 
-          // 應用縮放 (包含基礎放大係數)
-          this.group.scale.setScalar(scale * BASE_SCALE);
-          this.materials.forEach(m => m.opacity = op);
-          return true;
-        }
-
-        setTexture(tex) {
-           if (this.petalMat) {
-               this.petalMat.map = tex;
-               this.petalMat.color.setHex(0xffffff);
-               this.petalMat.emissive.setHex(0x000000);
-               this.petalMat.needsUpdate = true;
-           }
-        }
-
-        destroy() {
-          if (this.group.parent) this.group.parent.remove(this.group);
-          this.materials.forEach(m => m.dispose());
-        }
-      }
-
-      // --- A-Frame 自定義組件 ---
-      AFRAME.registerComponent('flower-garden', {
-        schema: {
-          targetIndex: {type: 'int', default: 0}
-        },
-
-        init: function() {
-          this.flowers = [];
-          this.time = 0;
-          this.isActive = false;
-          
-          // 1. 建立 3D 容器
-          this.gardenGroup = new THREE.Group();
-          this.el.setObject3D('mesh', this.gardenGroup);
-          
-          // 2. 建立地面 (半透明深藍色，像魔法傳送門)
-          // MindAR 目標預設寬度為 1，我們讓地面稍微大一點
-          const groundGeo = new THREE.PlaneGeometry(1.5, 1.5); // 調整為適合 AR 比例
-          const groundMat = new THREE.MeshStandardMaterial({
-             color: 0x001133,
-             transparent: true,
-             opacity: 0.6,
-             roughness: 0.4,
-             metalness: 0.8,
-             side: THREE.DoubleSide
-          });
-          this.ground = new THREE.Mesh(groundGeo, groundMat);
-          this.ground.rotation.x = -Math.PI; // 面向攝影機 (MindAR 垂直)
-          this.gardenGroup.add(this.ground);
-          
-          // 3. 燈光 (必須加在 group 內跟著目標移動)
-          const light = new THREE.DirectionalLight(0xaaccff, 2);
-          light.position.set(1, 2, 1);
-          this.gardenGroup.add(light);
-          
-          const ambient = new THREE.AmbientLight(0x444488, 0.8);
-          this.gardenGroup.add(ambient);
-
-          // 4. 預先載入幾何體 (效能優化)
-          this.sharedGeos = {
-             stem: new THREE.CylinderGeometry(0.04, 0.06, 3, 6).translate(0, 1.5, 0),
-             leaf: new THREE.SphereGeometry(0.15, 6, 6).scale(2, 0.2, 1),
-             petal: new THREE.PlaneGeometry(0.5, 0.8),
-             center: new THREE.SphereGeometry(0.2, 10, 10)
-          };
-
-          // 5. 載入貼圖
-          this.textureLoader = new THREE.TextureLoader();
-          this.textureLoader.setCrossOrigin('anonymous');
-          // 嘗試載入預設圖
-          this.textureLoader.load(DEFAULT_TEXTURE_URL, (tex) => {
-             window.currentFlowerTexture = tex;
-          });
-
-          // 6. 事件監聽
-          this.el.sceneEl.addEventListener('click', this.handlePlanting.bind(this));
-          this.el.sceneEl.addEventListener('touchstart', this.handlePlanting.bind(this));
-          
-          // 目標發現/遺失事件
-          this.el.parentEl.addEventListener('targetFound', () => {
-             this.isActive = true;
-             // 隱藏掃描框在 index.html 的 CSS 中處理，這裡只要確保邏輯跑動
-             console.log('Target Found: Garden Active');
-          });
-          this.el.parentEl.addEventListener('targetLost', () => {
-             this.isActive = false;
-          });
-        },
-
-        handlePlanting: function(evt) {
-           if (!this.isActive) return;
-           
-           // 簡單的隨機種植 (AR 中射線檢測較複雜，這裡使用隨機位置種在盤子上，體驗更流暢)
-           // 範圍在 -0.5 到 0.5 之間 (目標大小)
-           const x = (Math.random() - 0.5) * 1.0; 
-           const z = (Math.random() - 0.5) * 1.0; // 在 A-Frame 的垂直面其實是 y，但我們轉了 ground
-           // 注意：MindAR 的 ImageTarget 是 Z 軸向上嗎？通常是 XY 平面。
-           
-           // 建立花朵
-           const tex = window.currentFlowerTexture;
-           const flower = new Flower(x, z, tex, this.gardenGroup, this.sharedGeos);
-           // 因為 ground 轉了 -PI，我們要把花「立」在 ground 上
-           // 這裡需要一點座標系調整：MindAR 目標平面是 XY，Z 是垂直。
-           // 我們的花原本是長在 XZ 平面 (Y 向上)。
-           // 所以我們要讓花的 Group 旋轉 X = 90度? 
-           // 最簡單的方法：直接讓花長在 XY 平面上 (修改 Flower 內部邏輯或是旋轉整個 Container)
-           
-           // 修正：讓花朵垂直於卡片
-           flower.group.rotation.x = Math.PI / 2; 
-           // 位置修正
-           flower.group.position.set(x, y, 0); // Z=0 貼在圖片上
-           
-           // 更好的做法：我們剛剛轉了 Ground (rot x = 0 for AR targets usually face Z)
-           // 讓我們統一：Ground 不轉，花朵長在 Z 軸上 (立起來)
-           
-           // 最終修正座標系：
-           flower.group.rotation.x = Math.PI / 2; // 把原本向上的花轉向觀眾
-           flower.group.position.set(x, z, 0); // 隨機分佈在 XY 平面
-
-           this.flowers.push(flower);
-           
-           // 數量限制
-           if (this.flowers.length > 20) {
-               const old = this.flowers.shift();
-               old.destroy();
-           }
-        },
-
-        tick: function(time, timeDelta) {
-           if (!this.isActive) return;
-           
-           const dt = timeDelta / 1000;
-           const t = time / 1000;
-           
-           for (let i = this.flowers.length - 1; i >= 0; i--) {
-               if (!this.flowers[i].update(dt, t)) {
-                   this.flowers[i].destroy();
-                   this.flowers.splice(i, 1);
-               }
-           }
-        }
-      });
-
-      // --- 圖片上傳邏輯 ---
-      const uploadInput = document.getElementById('texture-upload');
-      uploadInput.addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          
-          const reader = new FileReader();
-          reader.onload = (event) => {
-              const url = event.target.result;
-              new THREE.TextureLoader().load(url, (tex) => {
-                  window.currentFlowerTexture = tex;
-                  
-                  // 更新現有的花
-                  // 由於花朵在 A-Frame 組件內部，我們需要存取組件實例 (這裡簡化處理：新種的花會變)
-                  // 或者我們可以遍歷場景
-                  const gardens = document.querySelectorAll('[flower-garden]');
-                  gardens.forEach(el => {
-                      const component = el.components['flower-garden'];
-                      if (component && component.flowers) {
-                          component.flowers.forEach(f => f.setTexture(tex));
-                      }
-                  });
+              // 設置 a-video 的 geometry 屬性
+              videoEntity.setAttribute("geometry", {
+                width: scaledWidth,
+                height: scaledHeight
               });
-          };
-          reader.readAsDataURL(file);
+              
+              // 設置 position 為 0 0 0.001 以確保影片在目標平面上方
+              videoEntity.setAttribute("position", "0 0 0.001");
+              
+            } else {
+              console.error("Invalid aspect ratio set on target entity:", ratio);
+            }
+          });
+        }
       });
 
-      // 隱藏掃描提示邏輯
-      const scene = document.querySelector('a-scene');
-      const overlay = document.getElementById('scanning-overlay');
-      const hint = document.getElementById('hint-text');
-      
-      scene.addEventListener('targetFound', () => {
-         overlay.classList.add('hidden');
-         hint.style.opacity = 1;
-      });
-      scene.addEventListener('targetLost', () => {
-         // 選擇性：是否要在丟失時重新顯示掃描框？通常保持隱藏體驗較好，或者延遲顯示
-         // overlay.classList.remove('hidden'); 
-         hint.style.opacity = 0.5;
+      // 初始化應用程式
+      window.addEventListener('DOMContentLoaded', () => {
+        if (window.AFRAME) initApp();
+        else window.addEventListener('load', initApp);
       });
 
+      function initApp() {
+        // --- 變數宣告區 ---
+        const SCENE = document.querySelector("a-scene");
+        const videoEl1 = document.querySelector("#video1"); // 影片資源 1
+        const videoEl2 = document.querySelector("#video2"); // 影片資源 2
+        const videoEntity0 = document.querySelector("#video0-entity"); // AR 影片實體 0
+        const videoEntity1 = document.querySelector("#video1-entity"); // AR 影片實體 1
+        const targetEl0 = document.querySelector("#target0");
+        const targetEl1 = document.querySelector("#target1");
+        
+        const scanningOverlay = document.getElementById("scanning-overlay");
+        const controlsContainer = document.getElementById("controls-container");
+        const progressContainer = document.getElementById("progress-container");
+        const playButton = document.getElementById("play-button");
+        const soundButton = document.getElementById("sound-button");
+        const fullscreenButton = document.getElementById("fullscreen-button");
+        const fullscreenContainer = document.getElementById("fullscreen-container");
+        const fullscreenVideo = document.getElementById("fullscreen-video");
+        const progressBar = document.getElementById("progress-bar");
+        
+        // 圖標元素
+        const playIcon = document.getElementById("play-icon");
+        const pauseIcon = document.getElementById("pause-icon");
+        const soundOnIcon = document.getElementById("sound-on-icon");
+        const soundOffIcon = document.getElementById("sound-off-icon");
+        
+        // --- 狀態管理 ---
+        const state = {
+          targetFoundIndex: -1, // -1: 未發現, 0: 目標 0 發現, 1: 目標 1 發現
+          audioEnabled: false,
+          isPlaying: false,
+          fullscreen: false,
+          hasPlayed: false,
+          // 當前活躍的影片元素 (HTML <video>)
+          currentVideoEl: null,
+          // 當前活躍的 AR 影片實體 (<a-video>)
+          currentVideoEntity: null,
+        };
+        
+        // 控制按鈕自動隱藏計時器
+        let controlsTimeout = null;
+        const HIDE_DELAY_MS = 3000; // 3 秒
+
+        // --- 輔助函式 ---
+
+        // 取得當前 AR 或全螢幕的影片元素
+        function getActiveVideo() {
+          return state.fullscreen ? fullscreenVideo : state.currentVideoEl;
+        }
+
+        // 更新按鈕圖標和狀態
+        function updateButtons() {
+          const isPlaying = state.isPlaying;
+          const audioEnabled = state.audioEnabled;
+          
+          playIcon.style.display = isPlaying ? "none" : "block";
+          pauseIcon.style.display = isPlaying ? "block" : "none";
+          playButton.classList.toggle("active", isPlaying);
+          
+          soundOnIcon.style.display = audioEnabled ? "block" : "none";
+          soundOffIcon.style.display = audioEnabled ? "none" : "block";
+          soundButton.classList.toggle("active", audioEnabled);
+        }
+
+        // 音訊控制
+        function toggleAudio() {
+          resetControlsTimer();
+          
+          state.audioEnabled = !state.audioEnabled;
+          videoEl1.muted = !state.audioEnabled;
+          videoEl2.muted = !state.audioEnabled;
+          fullscreenVideo.muted = !state.audioEnabled;
+          updateButtons();
+        }
+
+        // 播放影片
+        async function playVideo(video) {
+          if (!video || !video.src) return;
+          try {
+            await video.play();
+            state.isPlaying = true;
+            updateButtons();
+          } catch (e) {
+            // 自動播放失敗 (通常是因為沒有使用者手勢)，嘗試靜音播放
+            console.warn("Autoplay failed, attempting muted play:", e);
+            video.muted = true;
+            state.audioEnabled = false;
+            await video.play().catch(() => {});
+            updateButtons();
+          }
+        }
+
+        // 暫停影片
+        function pauseVideo(video) {
+          if (video && video.src) {
+            video.pause();
+            state.isPlaying = false;
+            updateButtons();
+          }
+        }
+
+        // 播放/暫停切換
+        function togglePlayPause() {
+          if (!state.hasPlayed) return;
+          resetControlsTimer();
+          
+          const video = getActiveVideo();
+          if (video) {
+            if (state.isPlaying) {
+              pauseVideo(video);
+            } else {
+              playVideo(video);
+            }
+          }
+        }
+
+        // 全螢幕切換
+        function toggleFullscreen() {
+          if (!state.hasPlayed) return;
+          resetControlsTimer();
+          
+          const currentVideo = state.currentVideoEl;
+          if (!currentVideo) return;
+
+          if (state.fullscreen) {
+            // 退出全螢幕
+            fullscreenContainer.classList.remove("visible");
+            state.fullscreen = false;
+            pauseVideo(fullscreenVideo);
+            fullscreenVideo.src = ""; // 清除影片源
+            
+            // 如果 AR 目標仍被追蹤，則恢復 AR 播放
+            if (state.targetFoundIndex !== -1) {
+              // 恢復 AR 影片的播放狀態和時間
+              currentVideo.currentTime = fullscreenVideo.currentTime;
+              playVideo(currentVideo);
+              // 顯示控制項和進度條
+              showControls();
+            } else {
+              // 如果目標已丟失，顯示掃描疊層
+              scanningOverlay.classList.remove("hidden");
+            }
+
+          } else {
+            // 進入全螢幕
+            
+            // 暫停 AR 影片
+            pauseVideo(currentVideo);
+            
+            // 設定全螢幕影片並播放
+            fullscreenVideo.src = currentVideo.src;
+            fullscreenVideo.currentTime = currentVideo.currentTime;
+            fullscreenVideo.muted = !state.audioEnabled; // 保持音訊狀態同步
+            fullscreenContainer.classList.add("visible");
+            state.fullscreen = true;
+            playVideo(fullscreenVideo);
+          }
+        }
+
+        // 簡單的進度更新
+        function updateProgress() {
+          const video = getActiveVideo();
+          if (video && video.duration && state.hasPlayed) {
+            const progress = (video.currentTime / video.duration) * 100;
+            progressBar.style.width = progress + "%";
+          }
+        }
+
+        // --- 目標追蹤邏輯 ---
+
+        // 停止所有影片
+        function stopAllVideos() {
+          pauseVideo(videoEl1);
+          pauseVideo(videoEl2);
+          
+          videoEntity0.object3D.visible = false;
+          videoEntity1.object3D.visible = false;
+        }
+
+        // 啟動指定目標的影片
+        function activateTarget(targetIndex) {
+          if (state.fullscreen) {
+            // 如果在全螢幕模式，先退出
+            toggleFullscreen();
+          }
+          
+          // 停止所有其他影片
+          stopAllVideos();
+          
+          // 設定當前活躍的影片
+          state.targetFoundIndex = targetIndex;
+          state.hasPlayed = true;
+          
+          if (targetIndex === 0) {
+            state.currentVideoEl = videoEl1;
+            state.currentVideoEntity = videoEntity0;
+          } else if (targetIndex === 1) {
+            state.currentVideoEl = videoEl2;
+            state.currentVideoEntity = videoEntity1;
+          } else {
+            return;
+          }
+          
+          // 確保 AR 實體可見
+          state.currentVideoEntity.object3D.visible = true;
+          
+          // 重置時間並播放
+          state.currentVideoEl.currentTime = 0;
+          state.currentVideoEl.muted = !state.audioEnabled; // 應用當前音訊設定
+          playVideo(state.currentVideoEl);
+          
+          // 隱藏掃描疊層並顯示控制項
+          scanningOverlay.classList.add("hidden");
+          showControls();
+          resetControlsTimer();
+        }
+
+        // 處理目標丟失
+        function handleTargetLost() {
+          // 在目標丟失時，只將 targetFoundIndex 設為 -1，讓計時器知道要隱藏控制項
+          state.targetFoundIndex = -1;
+          
+          // 暫停 AR 影片（但保留全螢幕播放）
+          if (!state.fullscreen) {
+            stopAllVideos();
+            
+            // 延遲顯示掃描疊層，防止閃爍
+            setTimeout(() => {
+              // 再次檢查狀態，避免在短時間內重新找到目標時又顯示掃描疊層
+              if (state.targetFoundIndex === -1 && !state.fullscreen) {
+                scanningOverlay.classList.remove("hidden");
+                hideControls();
+              }
+            }, 500);
+          }
+        }
+
+        // --- 控制項自動隱藏邏輯 ---
+
+        // 顯示控制項和進度條
+        function showControls() {
+            controlsContainer.classList.remove("hidden");
+            progressContainer.classList.remove("hidden");
+        }
+
+        // 隱藏控制項和進度條
+        function hideControls() {
+            controlsContainer.classList.add("hidden");
+            progressContainer.classList.add("hidden");
+        }
+
+        // 重設計時器
+        function resetControlsTimer() {
+            // 只有在目標被追蹤或全螢幕模式下才啟用計時
+            if (state.fullscreen || state.targetFoundIndex !== -1) {
+                showControls(); // 確保每次互動都先顯示
+                clearTimeout(controlsTimeout);
+                controlsTimeout = setTimeout(() => {
+                    // 只有在播放中時才自動隱藏
+                    if (state.isPlaying) {
+                        hideControls();
+                    }
+                }, HIDE_DELAY_MS);
+            } else {
+                // 如果目標未找到，確保隱藏
+                hideControls();
+            }
+        }
+
+        // 綁定事件：只要使用者在螢幕或控制項上互動就重設計時器
+        [controlsContainer, SCENE].forEach(el => {
+            if (el) {
+                el.addEventListener('click', resetControlsTimer);
+                el.addEventListener('touchstart', resetControlsTimer);
+            }
+        });
+
+        // 全螢幕點擊退出（也要重設計時器）
+        fullscreenContainer.addEventListener("click", (e) => {
+          if (e.target === fullscreenContainer || e.target === fullscreenVideo) {
+            toggleFullscreen();
+          }
+          // 重設計時器以防控制項被立即隱藏
+          resetControlsTimer(); 
+        });
+
+        // 影片進度更新
+        videoEl1.addEventListener("timeupdate", updateProgress);
+        videoEl2.addEventListener("timeupdate", updateProgress);
+        fullscreenVideo.addEventListener("timeupdate", updateProgress);
+
+        // --- A-Frame/MindAR 事件監聽 ---
+        
+        // 目標 0 追蹤事件
+        targetEl0.addEventListener("targetFound", () => {
+          activateTarget(0);
+        });
+        targetEl0.addEventListener("targetLost", handleTargetLost);
+
+        // 目標 1 追蹤事件
+        targetEl1.addEventListener("targetFound", () => {
+          activateTarget(1);
+        });
+        targetEl1.addEventListener("targetLost", handleTargetLost);
+
+        // 頁面可見性處理 (當使用者切換 App 時暫停/恢復)
+        document.addEventListener("visibilitychange", () => {
+          const video = getActiveVideo();
+          if (document.hidden) {
+            pauseVideo(video);
+          } else {
+            // 只有在之前正在播放時才恢復
+            if (state.isPlaying) {
+              playVideo(video);
+            }
+          }
+        });
+        
+        // 初始化狀態
+        updateButtons();
+        hideControls();
+      }
     </script>
   </body>
 </html>
