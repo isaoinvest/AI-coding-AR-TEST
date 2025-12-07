@@ -102,13 +102,15 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
                     inset 0 1px 0 rgba(255, 255, 255, 0.1);
         opacity: 0;
-        transform: scale(0.8) translateY(20px);
+        transform: translate(-50%, -50%) scale(0.8);
         transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        max-width: 280px;
+        min-width: 240px;
       }
 
       .info-card.active {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: translate(-50%, -50%) scale(1);
       }
 
       .info-card::before {
@@ -396,7 +398,13 @@
         // 計算 2D 螢幕位置
         function getScreenPosition(target) {
           const camera = SCENE.camera;
-          const targetPos = target.object3D.position.clone();
+          if (!camera) return null;
+          
+          // 獲取目標的世界位置
+          const targetPos = new THREE.Vector3();
+          target.object3D.getWorldPosition(targetPos);
+          
+          // 轉換到螢幕座標
           targetPos.project(camera);
 
           const widthHalf = window.innerWidth / 2;
@@ -404,7 +412,8 @@
 
           return {
             x: (targetPos.x * widthHalf) + widthHalf,
-            y: -(targetPos.y * heightHalf) + heightHalf
+            y: -(targetPos.y * heightHalf) + heightHalf,
+            z: targetPos.z
           };
         }
 
@@ -417,31 +426,45 @@
           if (!activeTargets.has(targetIndex)) return;
 
           const pos = getScreenPosition(target);
+          if (!pos) return;
+          
+          // 如果目標在鏡頭後面，隱藏卡片
+          if (pos.z > 1) {
+            card.style.opacity = '0';
+            line.style.opacity = '0';
+            return;
+          }
+          
+          // 確保卡片可見
+          card.style.opacity = '1';
+          line.style.opacity = '1';
           
           // 根據目標位置調整卡片位置
-          let offsetX = 280;
-          let offsetY = -80;
+          let offsetX = 150;
+          let offsetY = -100;
           
-          // 如果太靠右邊，則顯示在左邊
-          if (pos.x > window.innerWidth - 350) {
-            offsetX = -280;
+          // 動態調整偏移量，確保卡片在螢幕內
+          if (pos.x > window.innerWidth * 0.6) {
+            offsetX = -150;  // 顯示在左邊
           }
           
-          // 如果太靠下，則往上移
-          if (pos.y > window.innerHeight - 200) {
-            offsetY = -150;
+          if (pos.y < window.innerHeight * 0.3) {
+            offsetY = 100;  // 顯示在下方
+          } else if (pos.y > window.innerHeight * 0.7) {
+            offsetY = -100;  // 顯示在上方
           }
 
-          const cardX = pos.x + offsetX;
-          const cardY = pos.y + offsetY;
+          const cardX = Math.max(120, Math.min(window.innerWidth - 120, pos.x + offsetX));
+          const cardY = Math.max(100, Math.min(window.innerHeight - 100, pos.y + offsetY));
 
           card.style.left = `${cardX}px`;
           card.style.top = `${cardY}px`;
-          card.style.transform = `translate(-50%, -50%)`;
 
           // 更新連接線
-          const lineLength = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
-          const lineAngle = Math.atan2(offsetY, offsetX) * 180 / Math.PI;
+          const deltaX = cardX - pos.x;
+          const deltaY = cardY - pos.y;
+          const lineLength = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          const lineAngle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
 
           line.style.left = `${pos.x}px`;
           line.style.top = `${pos.y}px`;
