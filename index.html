@@ -1,667 +1,394 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="preconnect" href="https://aframe.io" />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>High-Tech AR HUD Experience</title>
+
+    <!-- Using MindAR + A-Frame (CDF) -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-        width: 100vw;
-        height: 100vh;
-        /* 確保全螢幕影片在背景 */
-        background-color: black;
-      }
+        /* HUD Base Styles */
+        :root {
+            --hud-border-color: rgba(255, 255, 255, 0.9);
+            --hud-bg-color: rgba(20, 20, 30, 0.4);
+            --hud-text-color: #ffffff;
+            --hud-accent-color: #ffffff;
+        }
 
-      /* 掃描 UI */
-      #scanning-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 2;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        pointer-events: none;
-        background-color: rgba(0, 0, 0, 0.1);
-        transition: opacity 0.3s;
-        color: white;
-        font-family: 'Inter', sans-serif;
-        text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-      }
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
 
-      #scanning-overlay.hidden {
-        opacity: 0;
-      }
+        /* 
+   Overlay Container 
+   This stays generic until activated.
+*/
+        #ar-hud-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            /* Let clicks pass through to AR scene */
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
 
-      .scanner-frame {
-        width: 180px;
-        height: 180px;
-        border: 2px solid rgba(255, 255, 255, 0.5);
-        border-radius: 10px;
-        position: relative;
-        overflow: hidden; /* 確保掃描線不溢出 */
-      }
+        #ar-hud-overlay.active {
+            opacity: 1;
+        }
 
-      .scanner-line {
-        position: absolute;
-        height: 2px;
-        width: 100%;
-        background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.8), transparent);
-        animation: scan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        box-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
-      }
+        /* 
+   The HUD Box 
+   This mimics the "glass" panel in the reference.
+*/
+        .hud-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70vw;
+            /* Adjust based on device */
+            max-width: 500px;
+            height: auto;
+            min-height: 250px;
 
-      @keyframes scan {
-        0% { transform: translateY(0); }
-        50% { transform: translateY(calc(180px - 2px)); } /* 掃描線從頂部到底部 */
-        100% { transform: translateY(0); }
-      }
-      
-      .scan-text {
-        margin-top: 15px;
-        font-size: 16px;
-        color: rgba(255, 255, 255, 0.8);
-      }
+            /* Glassmorphism */
+            background: var(--hud-bg-color);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
 
-      /* 控制按鈕容器 - 新增自動隱藏的過渡效果 */
-      .controls-container {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        display: flex;
-        gap: 15px;
-        transition: opacity 0.3s ease-in-out, visibility 0.3s;
-      }
+            /* Thin white border */
+            border: 1px solid var(--hud-border-color);
+            border-radius: 8px;
 
-      .controls-container.hidden {
-        opacity: 0;
-        pointer-events: none;
-        visibility: hidden;
-      }
+            /* Layout */
+            display: flex;
+            flex-direction: row;
+            /* Image left, text right */
+            padding: 20px;
+            box-sizing: border-box;
 
-      .icon-button {
-        width: 48px;
-        height: 48px;
-        background-color: rgba(0, 0, 0, 0.7);
-        border: none; /* 移除邊框以簡化設計 */
-        border-radius: 50%;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      
-      .icon-button:active {
-        transform: scale(0.95);
-        background-color: rgba(0, 0, 0, 0.9);
-      }
-      
-      .icon-button.active {
-        background-color: rgba(0, 195, 255, 0.4);
-        box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
-      }
+            /* Initial State for Animation */
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.95);
+        }
 
-      .icon-button svg {
-        width: 24px;
-        height: 24px;
-        fill: white;
-      }
+        /* Active State Animation */
+        .hud-container.visible {
+            animation: hudAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
 
-      /* 進度條 */
-      .progress-container {
-        position: fixed;
-        bottom: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 200px;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 2px;
-        z-index: 1000;
-        overflow: hidden;
-        transition: opacity 0.3s ease-in-out, visibility 0.3s;
-      }
+        @keyframes hudAppear {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.95);
+            }
 
-      .progress-container.hidden {
-        opacity: 0;
-        visibility: hidden;
-      }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
 
-      .progress-bar {
-        height: 100%;
-        background: rgba(0, 255, 255, 0.8);
-        width: 0%;
-        transition: width 0.2s linear;
-      }
+        /* 
+   Left Column: Image Thumbnail 
+*/
+        .hud-image-col {
+            flex: 0 0 40%;
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-      /* 全螢幕影片 */
-      #fullscreen-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 999;
-        display: none;
-        background-color: rgba(0, 0, 0, 0.95);
-        cursor: pointer;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      #fullscreen-container.visible {
-        display: flex;
-      }
-      
-      #fullscreen-video {
-        max-width: 100%;
-        max-height: 100%;
-      }
+        .hud-thumbnail {
+            width: 100%;
+            height: auto;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            display: block;
+        }
+
+        /* 
+   Right Column: Text Content 
+*/
+        .hud-text-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Chat bubble / Description Box styles */
+        .hud-text-box {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .hud-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* Typewriter Text */
+        .hud-description {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--hud-text-color);
+            font-weight: 300;
+            min-height: 1.5em;
+            /* Prevent jump */
+        }
+
+        /* Cursor effect */
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background-color: var(--hud-text-color);
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* 
+   Decorations (Corner accents, lines) 
+*/
+        .hud-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: var(--hud-accent-color);
+            border-style: solid;
+            pointer-events: none;
+        }
+
+        .top-left {
+            top: -1px;
+            left: -1px;
+            border-width: 2px 0 0 2px;
+            border-radius: 4px 0 0 0;
+        }
+
+        .bottom-right {
+            bottom: -1px;
+            right: -1px;
+            border-width: 0 2px 2px 0;
+            border-radius: 0 0 4px 0;
+        }
+
+        /* 
+   Connecting Line (Optional - to link target to HUD) 
+   Positioned relative to screen center or tracked point 
+*/
+        .hud-connector-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--hud-border-color));
+            transform-origin: left center;
+            transform: rotate(-45deg);
+            z-index: 999;
+            opacity: 0;
+        }
+
+        .hud-connector-line.visible {
+            animation: lineGrow 0.5s ease-out 0.2s forwards;
+        }
+
+        @keyframes lineGrow {
+            0% {
+                width: 0;
+                opacity: 0;
+            }
+
+            100% {
+                width: 150px;
+                opacity: 1;
+            }
+        }
+
+        /* Debug Button for Testing without AR */
+        #debug-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 1px solid white;
+            z-index: 2000;
+            cursor: pointer;
+        }
     </style>
-  </head>
-  <body>
-    <div class="controls-container" id="controls-container">
-      <button class="icon-button" id="play-button">
-        <svg viewBox="0 0 24 24" id="play-icon">
-          <path d="M8 5v14l11-7z"/>
-        </svg>
-        <svg viewBox="0 0 24 24" id="pause-icon" style="display:none;">
-          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-        </svg>
-      </button>
-      
-      <button class="icon-button" id="sound-button">
-        <svg viewBox="0 0 24 24" id="sound-on-icon" style="display:none;">
-          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-        </svg>
-        <svg viewBox="0 0 24 24" id="sound-off-icon">
-          <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-        </svg>
-      </button>
-
-      <button class="icon-button" id="fullscreen-button">
-        <svg viewBox="0 0 24 24">
-          <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="progress-container" id="progress-container">
-      <div class="progress-bar" id="progress-bar"></div>
-    </div>
-
-    <div id="scanning-overlay">
-      <div class="scanner-frame">
-        <div class="scanner-line"></div>
-      </div>
-      <div class="scan-text">請掃描目標影像</div>
-    </div>
-    
-    <div id="fullscreen-container">
-      <video id="fullscreen-video" playsinline webkit-playsinline></video>
-    </div>
-
-    <a-scene
-      mindar-image="imageTargetSrc: https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/targets.mind;
-                    warmupTolerance: 5;
-                    missTolerance: 10;
-                    filterMinCF: 0.000001; 
-                    filterBeta: 250;
-                    uiScanning: #scanning-overlay;"
-      color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
-      loading-screen="enabled: true; dotsColor: #fff; backgroundColor: #000"
-    >
-      <a-camera
-        position="0 0 0"
-        look-controls="enabled: false"
-        cursor="fuse: false; rayOrigin: mouse;"
-        raycaster="far: 10000; objects: .clickable"
-      ></a-camera>
-
-      <a-assets>
-        <video
-          id="video1"
-          src="https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/SCREEN1.mp4"
-          preload="auto"
-          loop
-          crossorigin="anonymous"
-          playsinline
-          webkit-playsinline
-          muted
-        ></video>
-
-        <video
-          id="video2"
-          src="https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/SCREEN2.mp4"
-          preload="auto"
-          loop
-          crossorigin="anonymous"
-          playsinline
-          webkit-playsinline
-          muted
-        ></video>
-      </a-assets>
-
-      <a-entity
-        id="target0"
-        mindar-image-target="targetIndex: 0"
-        data-target-aspect-ratio="0.6667" 
-        fit-video-to-target
-      >
-        <a-video
-          id="video0-entity"
-          src="#video1"
-          position="0 0 0.001" rotation="0 0 0"
-          loop="true"
-          visible="false" 
-        ></a-video>
-      </a-entity>
-      
-      <a-entity
-        id="target1"
-        mindar-image-target="targetIndex: 1"
-        data-target-aspect-ratio="1.5" 
-        fit-video-to-target
-      >
-        <a-video
-          id="video1-entity"
-          src="#video2"
-          position="0 0 0.001" rotation="0 0 0"
-          loop="true"
-          visible="false"
-        ></a-video>
-      </a-entity>
-    </a-scene>
 
     <script>
-      // 放大係數，讓影片比目標圖像稍微大一點點 (1.025 = 2.5% 放大)
-      const SCALE_FACTOR = 1.025; 
-      // 修正目標的 aspect-ratio 值，確保與註釋中的影片比例一致。
-      const TARGET_0_ASPECT_RATIO = 12 / 18; // 0.6667
-      const TARGET_1_ASPECT_RATIO = 18 / 15; // 1.5
+        document.addEventListener("DOMContentLoaded", () => {
+            const overlay = document.getElementById("ar-hud-overlay");
+            const hudContainer = document.querySelector(".hud-container");
+            const connectorLine = document.querySelector(".hud-connector-line");
+            const descriptionText = document.getElementById("hud-desc-text");
+            const exampleTarget = document.getElementById("example-target"); // The a-entity target
 
-      // A-Frame 影片比例調整元件
-      AFRAME.registerComponent("fit-video-to-target", {
-        init: function () {
-          const videoEntity = this.el.querySelector("a-video");
-          if (!videoEntity) return;
+            // Configurable Text
+            const fullText = "DETECTED: Blue-winged Mountain Tanager.\nNative to the Andean cloud forests.\nStatus: Endangered.";
+            let typingInterval;
 
-          this.el.addEventListener("targetFound", () => {
-            // 從父級實體 (a-entity) 獲取設定的長寬比
-            const ratio = parseFloat(this.el.dataset.targetAspectRatio);
-            
-            // 檢查 ratio 是否有效
-            if (!isNaN(ratio) && ratio > 0) {
-              // MindAR 預設目標大小的寬度為 1 單位
-              const targetWidth = 1; 
-              // 影片高度 = 寬度 / 比例
-              const targetHeight = targetWidth / ratio;
-              
-              // 應用放大係數
-              const scaledWidth = targetWidth * SCALE_FACTOR;
-              const scaledHeight = targetHeight * SCALE_FACTOR;
+            // --- Typewriter Effect ---
+            function startTyping(text) {
+                descriptionText.innerHTML = ""; // Clear
+                let i = 0;
 
-              // 設置 a-video 的 geometry 屬性
-              videoEntity.setAttribute("geometry", {
-                width: scaledWidth,
-                height: scaledHeight
-              });
-              
-              // 設置 position 為 0 0 0.001 以確保影片在目標平面上方
-              videoEntity.setAttribute("position", "0 0 0.001");
-              
-            } else {
-              console.error("Invalid aspect ratio set on target entity:", ratio);
-            }
-          });
-        }
-      });
+                // Add cursor
+                const cursor = document.createElement('span');
+                cursor.className = 'cursor';
+                descriptionText.appendChild(cursor);
 
-      // 初始化應用程式
-      window.addEventListener('DOMContentLoaded', () => {
-        if (window.AFRAME) initApp();
-        else window.addEventListener('load', initApp);
-      });
-
-      function initApp() {
-        // --- 變數宣告區 ---
-        const SCENE = document.querySelector("a-scene");
-        const videoEl1 = document.querySelector("#video1"); // 影片資源 1
-        const videoEl2 = document.querySelector("#video2"); // 影片資源 2
-        const videoEntity0 = document.querySelector("#video0-entity"); // AR 影片實體 0
-        const videoEntity1 = document.querySelector("#video1-entity"); // AR 影片實體 1
-        const targetEl0 = document.querySelector("#target0");
-        const targetEl1 = document.querySelector("#target1");
-        
-        const scanningOverlay = document.getElementById("scanning-overlay");
-        const controlsContainer = document.getElementById("controls-container");
-        const progressContainer = document.getElementById("progress-container");
-        const playButton = document.getElementById("play-button");
-        const soundButton = document.getElementById("sound-button");
-        const fullscreenButton = document.getElementById("fullscreen-button");
-        const fullscreenContainer = document.getElementById("fullscreen-container");
-        const fullscreenVideo = document.getElementById("fullscreen-video");
-        const progressBar = document.getElementById("progress-bar");
-        
-        // 圖標元素
-        const playIcon = document.getElementById("play-icon");
-        const pauseIcon = document.getElementById("pause-icon");
-        const soundOnIcon = document.getElementById("sound-on-icon");
-        const soundOffIcon = document.getElementById("sound-off-icon");
-        
-        // --- 狀態管理 ---
-        const state = {
-          targetFoundIndex: -1, // -1: 未發現, 0: 目標 0 發現, 1: 目標 1 發現
-          audioEnabled: false,
-          isPlaying: false,
-          fullscreen: false,
-          hasPlayed: false,
-          // 當前活躍的影片元素 (HTML <video>)
-          currentVideoEl: null,
-          // 當前活躍的 AR 影片實體 (<a-video>)
-          currentVideoEntity: null,
-        };
-        
-        // 控制按鈕自動隱藏計時器
-        let controlsTimeout = null;
-        const HIDE_DELAY_MS = 3000; // 3 秒
-
-        // --- 輔助函式 ---
-
-        // 取得當前 AR 或全螢幕的影片元素
-        function getActiveVideo() {
-          return state.fullscreen ? fullscreenVideo : state.currentVideoEl;
-        }
-
-        // 更新按鈕圖標和狀態
-        function updateButtons() {
-          const isPlaying = state.isPlaying;
-          const audioEnabled = state.audioEnabled;
-          
-          playIcon.style.display = isPlaying ? "none" : "block";
-          pauseIcon.style.display = isPlaying ? "block" : "none";
-          playButton.classList.toggle("active", isPlaying);
-          
-          soundOnIcon.style.display = audioEnabled ? "block" : "none";
-          soundOffIcon.style.display = audioEnabled ? "none" : "block";
-          soundButton.classList.toggle("active", audioEnabled);
-        }
-
-        // 音訊控制
-        function toggleAudio() {
-          resetControlsTimer();
-          
-          state.audioEnabled = !state.audioEnabled;
-          videoEl1.muted = !state.audioEnabled;
-          videoEl2.muted = !state.audioEnabled;
-          fullscreenVideo.muted = !state.audioEnabled;
-          updateButtons();
-        }
-
-        // 播放影片
-        async function playVideo(video) {
-          if (!video || !video.src) return;
-          try {
-            await video.play();
-            state.isPlaying = true;
-            updateButtons();
-          } catch (e) {
-            // 自動播放失敗 (通常是因為沒有使用者手勢)，嘗試靜音播放
-            console.warn("Autoplay failed, attempting muted play:", e);
-            video.muted = true;
-            state.audioEnabled = false;
-            await video.play().catch(() => {});
-            updateButtons();
-          }
-        }
-
-        // 暫停影片
-        function pauseVideo(video) {
-          if (video && video.src) {
-            video.pause();
-            state.isPlaying = false;
-            updateButtons();
-          }
-        }
-
-        // 播放/暫停切換
-        function togglePlayPause() {
-          if (!state.hasPlayed) return;
-          resetControlsTimer();
-          
-          const video = getActiveVideo();
-          if (video) {
-            if (state.isPlaying) {
-              pauseVideo(video);
-            } else {
-              playVideo(video);
-            }
-          }
-        }
-
-        // 全螢幕切換
-        function toggleFullscreen() {
-          if (!state.hasPlayed) return;
-          resetControlsTimer();
-          
-          const currentVideo = state.currentVideoEl;
-          if (!currentVideo) return;
-
-          if (state.fullscreen) {
-            // 退出全螢幕
-            fullscreenContainer.classList.remove("visible");
-            state.fullscreen = false;
-            pauseVideo(fullscreenVideo);
-            fullscreenVideo.src = ""; // 清除影片源
-            
-            // 如果 AR 目標仍被追蹤，則恢復 AR 播放
-            if (state.targetFoundIndex !== -1) {
-              // 恢復 AR 影片的播放狀態和時間
-              currentVideo.currentTime = fullscreenVideo.currentTime;
-              playVideo(currentVideo);
-              // 顯示控制項和進度條
-              showControls();
-            } else {
-              // 如果目標已丟失，顯示掃描疊層
-              scanningOverlay.classList.remove("hidden");
-            }
-
-          } else {
-            // 進入全螢幕
-            
-            // 暫停 AR 影片
-            pauseVideo(currentVideo);
-            
-            // 設定全螢幕影片並播放
-            fullscreenVideo.src = currentVideo.src;
-            fullscreenVideo.currentTime = currentVideo.currentTime;
-            fullscreenVideo.muted = !state.audioEnabled; // 保持音訊狀態同步
-            fullscreenContainer.classList.add("visible");
-            state.fullscreen = true;
-            playVideo(fullscreenVideo);
-          }
-        }
-
-        // 簡單的進度更新
-        function updateProgress() {
-          const video = getActiveVideo();
-          if (video && video.duration && state.hasPlayed) {
-            const progress = (video.currentTime / video.duration) * 100;
-            progressBar.style.width = progress + "%";
-          }
-        }
-
-        // --- 目標追蹤邏輯 ---
-
-        // 停止所有影片
-        function stopAllVideos() {
-          pauseVideo(videoEl1);
-          pauseVideo(videoEl2);
-          
-          videoEntity0.object3D.visible = false;
-          videoEntity1.object3D.visible = false;
-        }
-
-        // 啟動指定目標的影片
-        function activateTarget(targetIndex) {
-          if (state.fullscreen) {
-            // 如果在全螢幕模式，先退出
-            toggleFullscreen();
-          }
-          
-          // 停止所有其他影片
-          stopAllVideos();
-          
-          // 設定當前活躍的影片
-          state.targetFoundIndex = targetIndex;
-          state.hasPlayed = true;
-          
-          if (targetIndex === 0) {
-            state.currentVideoEl = videoEl1;
-            state.currentVideoEntity = videoEntity0;
-          } else if (targetIndex === 1) {
-            state.currentVideoEl = videoEl2;
-            state.currentVideoEntity = videoEntity1;
-          } else {
-            return;
-          }
-          
-          // 確保 AR 實體可見
-          state.currentVideoEntity.object3D.visible = true;
-          
-          // 重置時間並播放
-          state.currentVideoEl.currentTime = 0;
-          state.currentVideoEl.muted = !state.audioEnabled; // 應用當前音訊設定
-          playVideo(state.currentVideoEl);
-          
-          // 隱藏掃描疊層並顯示控制項
-          scanningOverlay.classList.add("hidden");
-          showControls();
-          resetControlsTimer();
-        }
-
-        // 處理目標丟失
-        function handleTargetLost() {
-          // 在目標丟失時，只將 targetFoundIndex 設為 -1，讓計時器知道要隱藏控制項
-          state.targetFoundIndex = -1;
-          
-          // 暫停 AR 影片（但保留全螢幕播放）
-          if (!state.fullscreen) {
-            stopAllVideos();
-            
-            // 延遲顯示掃描疊層，防止閃爍
-            setTimeout(() => {
-              // 再次檢查狀態，避免在短時間內重新找到目標時又顯示掃描疊層
-              if (state.targetFoundIndex === -1 && !state.fullscreen) {
-                scanningOverlay.classList.remove("hidden");
-                hideControls();
-              }
-            }, 500);
-          }
-        }
-
-        // --- 控制項自動隱藏邏輯 ---
-
-        // 顯示控制項和進度條
-        function showControls() {
-            controlsContainer.classList.remove("hidden");
-            progressContainer.classList.remove("hidden");
-        }
-
-        // 隱藏控制項和進度條
-        function hideControls() {
-            controlsContainer.classList.add("hidden");
-            progressContainer.classList.add("hidden");
-        }
-
-        // 重設計時器
-        function resetControlsTimer() {
-            // 只有在目標被追蹤或全螢幕模式下才啟用計時
-            if (state.fullscreen || state.targetFoundIndex !== -1) {
-                showControls(); // 確保每次互動都先顯示
-                clearTimeout(controlsTimeout);
-                controlsTimeout = setTimeout(() => {
-                    // 只有在播放中時才自動隱藏
-                    if (state.isPlaying) {
-                        hideControls();
+                clearInterval(typingInterval);
+                typingInterval = setInterval(() => {
+                    if (i < text.length) {
+                        // If newline, insert br
+                        if (text.charAt(i) === '\n') {
+                            cursor.before(document.createElement('br'));
+                        } else {
+                            cursor.before(document.createTextNode(text.charAt(i)));
+                        }
+                        i++;
+                    } else {
+                        clearInterval(typingInterval);
                     }
-                }, HIDE_DELAY_MS);
-            } else {
-                // 如果目標未找到，確保隱藏
-                hideControls();
+                }, 30); // Speed in ms
             }
-        }
 
-        // 綁定事件：只要使用者在螢幕或控制項上互動就重設計時器
-        [controlsContainer, SCENE].forEach(el => {
-            if (el) {
-                el.addEventListener('click', resetControlsTimer);
-                el.addEventListener('touchstart', resetControlsTimer);
+            function stopTyping() {
+                clearInterval(typingInterval);
+                descriptionText.innerHTML = ""; // Reset
+            }
+
+            // --- Show/Hide Logic ---
+            function showHUD() {
+                console.log("Target Found - Showing HUD");
+                overlay.classList.add("active");
+
+                // Slight delay for inner animations to look sequential
+                setTimeout(() => {
+                    hudContainer.classList.add("visible");
+                    connectorLine.classList.add("visible");
+                    startTyping(fullText);
+                }, 100);
+            }
+
+            function hideHUD() {
+                console.log("Target Lost - Hiding HUD");
+                overlay.classList.remove("active");
+                hudContainer.classList.remove("visible");
+                connectorLine.classList.remove("visible");
+                stopTyping();
+            }
+
+            // --- AR Events ---
+            if (exampleTarget) {
+                exampleTarget.addEventListener("targetFound", showHUD);
+                exampleTarget.addEventListener("targetLost", hideHUD);
+            }
+
+            // --- Debug / Fallback for testing without camera ---
+            const debugBtn = document.getElementById("debug-btn");
+            let isDebugActive = false;
+            if (debugBtn) {
+                debugBtn.addEventListener("click", () => {
+                    isDebugActive = !isDebugActive;
+                    if (isDebugActive) {
+                        showHUD();
+                        debugBtn.innerText = "Simulate Lose Target";
+                    } else {
+                        hideHUD();
+                        debugBtn.innerText = "Simulate Find Target";
+                    }
+                });
             }
         });
-
-        // 全螢幕點擊退出（也要重設計時器）
-        fullscreenContainer.addEventListener("click", (e) => {
-          if (e.target === fullscreenContainer || e.target === fullscreenVideo) {
-            toggleFullscreen();
-          }
-          // 重設計時器以防控制項被立即隱藏
-          resetControlsTimer(); 
-        });
-
-        // 影片進度更新
-        videoEl1.addEventListener("timeupdate", updateProgress);
-        videoEl2.addEventListener("timeupdate", updateProgress);
-        fullscreenVideo.addEventListener("timeupdate", updateProgress);
-
-        // --- A-Frame/MindAR 事件監聽 ---
-        
-        // 目標 0 追蹤事件
-        targetEl0.addEventListener("targetFound", () => {
-          activateTarget(0);
-        });
-        targetEl0.addEventListener("targetLost", handleTargetLost);
-
-        // 目標 1 追蹤事件
-        targetEl1.addEventListener("targetFound", () => {
-          activateTarget(1);
-        });
-        targetEl1.addEventListener("targetLost", handleTargetLost);
-
-        // 頁面可見性處理 (當使用者切換 App 時暫停/恢復)
-        document.addEventListener("visibilitychange", () => {
-          const video = getActiveVideo();
-          if (document.hidden) {
-            pauseVideo(video);
-          } else {
-            // 只有在之前正在播放時才恢復
-            if (state.isPlaying) {
-              playVideo(video);
-            }
-          }
-        });
-        
-        // 初始化狀態
-        updateButtons();
-        hideControls();
-      }
     </script>
-  </body>
+</head>
+
+<body>
+
+    <!-- 
+      AR Scene 
+      Note: Replace 'targets.mind' with your actual compiled .mind file 
+    -->
+    <a-scene
+        mindar-image="imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind; uiScanning: no;"
+        color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false">
+
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+        <!-- Target Entity -->
+        <a-entity id="example-target" mindar-image-target="targetIndex: 0">
+            <!-- 
+             You can put 3D models here if you want them attached to the image 
+             For this requests, we are using a screen overlay (HUD), so this can be empty 
+             or have a reference plane.
+          -->
+            <a-plane color="blue" opacity="0.5" height="0.552" width="1" rotation="0 0 0"></a-plane>
+        </a-entity>
+    </a-scene>
+
+    <!-- UI Overlay (The HUD) -->
+    <div id="ar-hud-overlay">
+        <!-- Connecting Line from center to HUD box -->
+        <div class="hud-connector-line"></div>
+
+        <div class="hud-container">
+            <!-- Corner Decorations -->
+            <div class="hud-corner top-left"></div>
+            <div class="hud-corner bottom-right"></div>
+
+            <div class="hud-image-col">
+                <!-- Placeholder for the 'detected' image or data viz -->
+                <!-- Ideally this matches what you scanned -->
+                <img src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.png"
+                    alt="Target" class="hud-thumbnail">
+            </div>
+
+            <div class="hud-text-col">
+                <div class="hud-text-box">
+                    <span class="hud-label">ANALYSIS COMPLETE</span>
+                    <div id="hud-desc-text" class="hud-description"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="debug-btn">Simulate Find Target</button>
+
+</body>
+
 </html>
