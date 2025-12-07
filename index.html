@@ -117,49 +117,49 @@
         <!-- 3D 資訊面板 -->
         <a-plane
           id="info-panel-0"
-          position="1.2 0.3 0.05"
-          width="1.2"
-          height="0.8"
+          position="0 0 0.05"
+          width="1.5"
+          height="1.0"
           rotation="0 0 0"
-          material="color: #000; opacity: 0.6; transparent: true; shader: flat; side: double"
+          material="color: #000; opacity: 0.2; transparent: true; shader: flat; side: double"
           visible="false"
         >
           <!-- 背景玻璃效果 -->
           <a-plane
             position="0 0 -0.001"
-            width="1.2"
-            height="0.8"
-            material="color: #ffffff; opacity: 0.08; transparent: true; shader: flat; side: double"
+            width="1.5"
+            height="1.0"
+            material="color: #ffffff; opacity: 0.03; transparent: true; shader: flat; side: double"
           ></a-plane>
           
           <!-- 邊框 -->
           <a-plane
             position="0 0 0.001"
-            width="1.21"
-            height="0.81"
-            material="color: #00ffff; opacity: 0.5; transparent: true; shader: flat; side: double"
+            width="1.51"
+            height="1.01"
+            material="color: #00ffff; opacity: 0.35; transparent: true; shader: flat; side: double"
           ></a-plane>
           
           <!-- 發光邊框效果 -->
           <a-plane
             position="0 0 0.002"
-            width="1.23"
-            height="0.83"
-            material="color: #00ffff; opacity: 0.3; transparent: true; shader: flat; side: double"
-            animation="property: material.opacity; from: 0.2; to: 0.6; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine"
+            width="1.53"
+            height="1.03"
+            material="color: #00ffff; opacity: 0.2; transparent: true; shader: flat; side: double"
+            animation="property: material.opacity; from: 0.15; to: 0.4; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine"
           ></a-plane>
 
           <!-- 標題區域 -->
           <a-plane
-            position="0 0.28 0.003"
-            width="1.1"
+            position="0 0.38 0.003"
+            width="1.4"
             height="0.15"
-            material="color: #00ffff; opacity: 0.3; transparent: true; shader: flat; side: double"
+            material="color: #00ffff; opacity: 0.15; transparent: true; shader: flat; side: double"
           >
             <a-text
               value="📱 互動影片體驗"
               position="0 0 0.001"
-              width="1.0"
+              width="1.2"
               align="center"
               color="#ffffff"
               shader="msdf"
@@ -171,11 +171,11 @@
           <a-text
             id="text-content-0"
             value="創新的 AR 互動影片展示\n結合圖像識別技術\n沉浸式體驗設計"
-            position="0 0 0.003"
-            width="0.9"
+            position="0 0.05 0.003"
+            width="1.1"
             align="center"
             color="#ffffff"
-            opacity="0.95"
+            opacity="0.9"
             line-height="60"
             shader="msdf"
             font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
@@ -183,57 +183,47 @@
 
           <!-- 底部狀態欄 -->
           <a-plane
-            position="0 -0.32 0.003"
-            width="1.1"
+            position="0 -0.42 0.003"
+            width="1.4"
             height="0.1"
-            material="color: #ffffff; opacity: 0.15; transparent: true; shader: flat; side: double"
+            material="color: #ffffff; opacity: 0.1; transparent: true; shader: flat; side: double"
           >
             <!-- 狀態點 -->
             <a-sphere
-              position="-0.4 0 0.002"
-              radius="0.018"
-              material="color: #00ffff; opacity: 0.9; shader: flat; side: double"
+              position="-0.5 0 0.002"
+              radius="0.02"
+              material="color: #00ffff; opacity: 0.8; shader: flat; side: double"
               animation="property: scale; from: 1 1 1; to: 1.4 1.4 1.4; dur: 1500; dir: alternate; loop: true; easing: easeInOutSine"
             ></a-sphere>
             
             <a-text
               value="Target ID: 0  |  已追蹤"
               position="0.1 0 0.002"
-              width="0.7"
+              width="0.8"
               align="center"
               color="#ffffff"
-              opacity="0.8"
+              opacity="0.7"
               shader="msdf"
               font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
             ></a-text>
           </a-plane>
 
-          <!-- 四角裝飾 - 放大尺寸 -->
-          <a-entity position="-0.58 0.38 0.004">
-            <a-plane width="0.08" height="0.006" position="0.04 0 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-            <a-plane width="0.006" height="0.08" position="0 -0.04 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
+          <!-- 四角裝飾 -->
+          <a-entity position="-0.73 0.48 0.004">
+            <a-plane width="0.1" height="0.008" position="0.05 0 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
+            <a-plane width="0.008" height="0.1" position="0 -0.05 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
           </a-entity>
-          <a-entity position="0.58 0.38 0.004">
-            <a-plane width="0.08" height="0.006" position="-0.04 0 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-            <a-plane width="0.006" height="0.08" position="0 -0.04 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
+          <a-entity position="0.73 0.48 0.004">
+            <a-plane width="0.1" height="0.008" position="-0.05 0 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
+            <a-plane width="0.008" height="0.1" position="0 -0.05 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
           </a-entity>
-          <a-entity position="-0.58 -0.38 0.004">
-            <a-plane width="0.08" height="0.006" position="0.04 0 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-            <a-plane width="0.006" height="0.08" position="0 0.04 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
+          <a-entity position="-0.73 -0.48 0.004">
+            <a-plane width="0.1" height="0.008" position="0.05 0 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
+            <a-plane width="0.008" height="0.1" position="0 0.05 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
           </a-entity>
-          <a-entity position="0.58 -0.38 0.004">
-            <a-plane width="0.08" height="0.006" position="-0.04 0 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-            <a-plane width="0.006" height="0.08" position="0 0.04 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-          </a-entity>
-
-          <!-- 連接線到目標 -->
-          <a-entity position="-0.6 0 0.003">
-            <a-plane
-              width="0.4"
-              height="0.008"
-              position="-0.2 0 0"
-              material="color: #00ffff; opacity: 0.6; transparent: true; shader: flat; side: double"
-            ></a-plane>
+          <a-entity position="0.73 -0.48 0.004">
+            <a-plane width="0.1" height="0.008" position="-0.05 0 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
+            <a-plane width="0.008" height="0.1" position="0 0.05 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
           </a-entity>
         </a-plane>
       </a-entity>
@@ -246,49 +236,49 @@
         <!-- 3D 資訊面板 -->
         <a-plane
           id="info-panel-1"
-          position="1.4 0.3 0.05"
-          width="1.2"
-          height="0.8"
+          position="0 0 0.05"
+          width="1.5"
+          height="1.0"
           rotation="0 0 0"
-          material="color: #000; opacity: 0.6; transparent: true; shader: flat; side: double"
+          material="color: #000; opacity: 0.2; transparent: true; shader: flat; side: double"
           visible="false"
         >
           <!-- 背景玻璃效果 -->
           <a-plane
             position="0 0 -0.001"
-            width="1.2"
-            height="0.8"
-            material="color: #ffffff; opacity: 0.08; transparent: true; shader: flat; side: double"
+            width="1.5"
+            height="1.0"
+            material="color: #ffffff; opacity: 0.03; transparent: true; shader: flat; side: double"
           ></a-plane>
           
           <!-- 邊框 -->
           <a-plane
             position="0 0 0.001"
-            width="1.21"
-            height="0.81"
-            material="color: #00ffff; opacity: 0.5; transparent: true; shader: flat; side: double"
+            width="1.51"
+            height="1.01"
+            material="color: #00ffff; opacity: 0.35; transparent: true; shader: flat; side: double"
           ></a-plane>
           
           <!-- 發光邊框效果 -->
           <a-plane
             position="0 0 0.002"
-            width="1.23"
-            height="0.83"
-            material="color: #00ffff; opacity: 0.3; transparent: true; shader: flat; side: double"
-            animation="property: material.opacity; from: 0.2; to: 0.6; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine"
+            width="1.53"
+            height="1.03"
+            material="color: #00ffff; opacity: 0.2; transparent: true; shader: flat; side: double"
+            animation="property: material.opacity; from: 0.15; to: 0.4; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine"
           ></a-plane>
 
           <!-- 標題區域 -->
           <a-plane
-            position="0 0.28 0.003"
-            width="1.1"
+            position="0 0.38 0.003"
+            width="1.4"
             height="0.15"
-            material="color: #00ffff; opacity: 0.3; transparent: true; shader: flat; side: double"
+            material="color: #00ffff; opacity: 0.15; transparent: true; shader: flat; side: double"
           >
             <a-text
               value="🎬 進階內容展示"
               position="0 0 0.001"
-              width="1.0"
+              width="1.2"
               align="center"
               color="#ffffff"
               shader="msdf"
@@ -300,11 +290,11 @@
           <a-text
             id="text-content-1"
             value="體驗未來科技視覺呈現\n透過 AR 技術\n數位內容與真實世界結合"
-            position="0 0 0.003"
-            width="0.9"
+            position="0 0.05 0.003"
+            width="1.1"
             align="center"
             color="#ffffff"
-            opacity="0.95"
+            opacity="0.9"
             line-height="60"
             shader="msdf"
             font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
@@ -312,57 +302,47 @@
 
           <!-- 底部狀態欄 -->
           <a-plane
-            position="0 -0.32 0.003"
-            width="1.1"
+            position="0 -0.42 0.003"
+            width="1.4"
             height="0.1"
-            material="color: #ffffff; opacity: 0.15; transparent: true; shader: flat; side: double"
+            material="color: #ffffff; opacity: 0.1; transparent: true; shader: flat; side: double"
           >
             <!-- 狀態點 -->
             <a-sphere
-              position="-0.4 0 0.002"
-              radius="0.018"
-              material="color: #00ffff; opacity: 0.9; shader: flat; side: double"
+              position="-0.5 0 0.002"
+              radius="0.02"
+              material="color: #00ffff; opacity: 0.8; shader: flat; side: double"
               animation="property: scale; from: 1 1 1; to: 1.4 1.4 1.4; dur: 1500; dir: alternate; loop: true; easing: easeInOutSine"
             ></a-sphere>
             
             <a-text
               value="Target ID: 1  |  已追蹤"
               position="0.1 0 0.002"
-              width="0.7"
+              width="0.8"
               align="center"
               color="#ffffff"
-              opacity="0.8"
+              opacity="0.7"
               shader="msdf"
               font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
             ></a-text>
           </a-plane>
 
-          <!-- 四角裝飾 - 放大尺寸 -->
-          <a-entity position="-0.58 0.38 0.004">
-            <a-plane width="0.08" height="0.006" position="0.04 0 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-            <a-plane width="0.006" height="0.08" position="0 -0.04 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
+          <!-- 四角裝飾 -->
+          <a-entity position="-0.73 0.48 0.004">
+            <a-plane width="0.1" height="0.008" position="0.05 0 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
+            <a-plane width="0.008" height="0.1" position="0 -0.05 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
           </a-entity>
-          <a-entity position="0.58 0.38 0.004">
-            <a-plane width="0.08" height="0.006" position="-0.04 0 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-            <a-plane width="0.006" height="0.08" position="0 -0.04 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
+          <a-entity position="0.73 0.48 0.004">
+            <a-plane width="0.1" height="0.008" position="-0.05 0 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
+            <a-plane width="0.008" height="0.1" position="0 -0.05 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
           </a-entity>
-          <a-entity position="-0.58 -0.38 0.004">
-            <a-plane width="0.08" height="0.006" position="0.04 0 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-            <a-plane width="0.006" height="0.08" position="0 0.04 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
+          <a-entity position="-0.73 -0.48 0.004">
+            <a-plane width="0.1" height="0.008" position="0.05 0 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
+            <a-plane width="0.008" height="0.1" position="0 0.05 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
           </a-entity>
-          <a-entity position="0.58 -0.38 0.004">
-            <a-plane width="0.08" height="0.006" position="-0.04 0 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-            <a-plane width="0.006" height="0.08" position="0 0.04 0" material="color: #00ffff; opacity: 0.8; shader: flat; side: double"></a-plane>
-          </a-entity>
-
-          <!-- 連接線到目標 -->
-          <a-entity position="-0.6 0 0.003">
-            <a-plane
-              width="0.5"
-              height="0.008"
-              position="-0.25 0 0"
-              material="color: #00ffff; opacity: 0.6; transparent: true; shader: flat; side: double"
-            ></a-plane>
+          <a-entity position="0.73 -0.48 0.004">
+            <a-plane width="0.1" height="0.008" position="-0.05 0 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
+            <a-plane width="0.008" height="0.1" position="0 0.05 0" material="color: #00ffff; opacity: 0.6; shader: flat; side: double"></a-plane>
           </a-entity>
         </a-plane>
       </a-entity>
