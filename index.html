@@ -39,14 +39,17 @@
         justify-content: center;
         pointer-events: none;
         background-color: rgba(0, 0, 0, 0.1);
-        transition: opacity 0.3s;
+        transition: opacity 0.3s, visibility 0.3s;
         color: white;
         font-family: 'Inter', sans-serif;
         text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        opacity: 1;
+        visibility: visible;
       }
 
       #scanning-overlay.hidden {
         opacity: 0;
+        visibility: hidden;
       }
 
       .scanner-frame {
@@ -78,205 +81,6 @@
         font-size: 16px;
         color: rgba(255, 255, 255, 0.8);
       }
-
-      /* AR 資訊覆蓋層容器 */
-      .ar-info-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 10;
-        pointer-events: none;
-        overflow: hidden;
-      }
-
-      /* 資訊卡片 */
-      .info-card {
-        position: absolute;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
-        backdrop-filter: blur(12px);
-        border: 1.5px solid rgba(255, 255, 255, 0.3);
-        border-radius: 16px;
-        padding: 20px 24px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.8);
-        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        max-width: 280px;
-        min-width: 240px;
-      }
-
-      .info-card.active {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-      }
-
-      .info-card::before {
-        content: '';
-        position: absolute;
-        top: -1px;
-        left: -1px;
-        right: -1px;
-        bottom: -1px;
-        background: linear-gradient(45deg, 
-          rgba(0, 255, 255, 0.3), 
-          rgba(255, 255, 255, 0.1), 
-          rgba(0, 255, 255, 0.3));
-        border-radius: 16px;
-        z-index: -1;
-        opacity: 0;
-        animation: borderGlow 3s ease-in-out infinite;
-      }
-
-      @keyframes borderGlow {
-        0%, 100% { opacity: 0.2; }
-        50% { opacity: 0.6; }
-      }
-
-      .info-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 12px;
-        gap: 10px;
-      }
-
-      .info-icon {
-        width: 32px;
-        height: 32px;
-        background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(0, 200, 255, 0.2));
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        animation: pulse 2s ease-in-out infinite;
-      }
-
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.05); opacity: 0.8; }
-      }
-
-      .info-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.95);
-        letter-spacing: 0.3px;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-      }
-
-      .info-content {
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 14px;
-        line-height: 1.6;
-        margin-top: 8px;
-      }
-
-      .typing-text {
-        display: inline-block;
-        overflow: hidden;
-        white-space: nowrap;
-        border-right: 2px solid rgba(0, 255, 255, 0.8);
-        animation: typing 3s steps(40) 0.5s forwards, blink 0.75s step-end infinite;
-        max-width: 0;
-      }
-
-      @keyframes typing {
-        from { max-width: 0; }
-        to { max-width: 100%; }
-      }
-
-      @keyframes blink {
-        50% { border-color: transparent; }
-      }
-
-      .info-metadata {
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
-        display: flex;
-        gap: 16px;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.6);
-      }
-
-      .metadata-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .metadata-dot {
-        width: 6px;
-        height: 6px;
-        background: rgba(0, 255, 255, 0.6);
-        border-radius: 50%;
-        animation: dotPulse 2s ease-in-out infinite;
-      }
-
-      @keyframes dotPulse {
-        0%, 100% { opacity: 0.4; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.2); }
-      }
-
-      /* 連接線 */
-      .connection-line {
-        position: absolute;
-        height: 1px;
-        background: linear-gradient(90deg, 
-          rgba(0, 255, 255, 0.6), 
-          rgba(0, 255, 255, 0.2), 
-          transparent);
-        transform-origin: left center;
-        opacity: 0;
-        transition: opacity 0.5s ease;
-      }
-
-      .connection-line.active {
-        opacity: 1;
-      }
-
-      /* 角落裝飾 */
-      .corner-decoration {
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        border: 2px solid rgba(0, 255, 255, 0.5);
-      }
-
-      .corner-tl {
-        top: -1px;
-        left: -1px;
-        border-right: none;
-        border-bottom: none;
-        border-top-left-radius: 16px;
-      }
-
-      .corner-tr {
-        top: -1px;
-        right: -1px;
-        border-left: none;
-        border-bottom: none;
-        border-top-right-radius: 16px;
-      }
-
-      .corner-bl {
-        bottom: -1px;
-        left: -1px;
-        border-right: none;
-        border-top: none;
-        border-bottom-left-radius: 16px;
-      }
-
-      .corner-br {
-        bottom: -1px;
-        right: -1px;
-        border-left: none;
-        border-top: none;
-        border-bottom-right-radius: 16px;
-      }
     </style>
   </head>
   <body>
@@ -287,72 +91,12 @@
       <div class="scan-text">請掃描目標影像</div>
     </div>
 
-    <!-- AR 資訊覆蓋層 -->
-    <div class="ar-info-overlay" id="ar-overlay">
-      <!-- Target 0 資訊卡片 -->
-      <div class="info-card" id="info-card-0">
-        <div class="corner-decoration corner-tl"></div>
-        <div class="corner-decoration corner-tr"></div>
-        <div class="corner-decoration corner-bl"></div>
-        <div class="corner-decoration corner-br"></div>
-        
-        <div class="info-header">
-          <div class="info-icon">📱</div>
-          <div class="info-title">互動影片體驗</div>
-        </div>
-        <div class="info-content">
-          <span class="typing-text" id="typing-text-0">這是一個創新的 AR 互動影片展示，結合了最新的圖像識別技術與沉浸式體驗設計。</span>
-        </div>
-        <div class="info-metadata">
-          <div class="metadata-item">
-            <div class="metadata-dot"></div>
-            <span>Target ID: 0</span>
-          </div>
-          <div class="metadata-item">
-            <div class="metadata-dot"></div>
-            <span>狀態: 已追蹤</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Target 1 資訊卡片 -->
-      <div class="info-card" id="info-card-1">
-        <div class="corner-decoration corner-tl"></div>
-        <div class="corner-decoration corner-tr"></div>
-        <div class="corner-decoration corner-bl"></div>
-        <div class="corner-decoration corner-br"></div>
-        
-        <div class="info-header">
-          <div class="info-icon">🎬</div>
-          <div class="info-title">進階內容展示</div>
-        </div>
-        <div class="info-content">
-          <span class="typing-text" id="typing-text-1">體驗未來科技的視覺呈現方式，透過 AR 技術讓數位內容與真實世界無縫結合。</span>
-        </div>
-        <div class="info-metadata">
-          <div class="metadata-item">
-            <div class="metadata-dot"></div>
-            <span>Target ID: 1</span>
-          </div>
-          <div class="metadata-item">
-            <div class="metadata-dot"></div>
-            <span>狀態: 已追蹤</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 連接線 -->
-      <div class="connection-line" id="line-0"></div>
-      <div class="connection-line" id="line-1"></div>
-    </div>
-
     <a-scene
       mindar-image="imageTargetSrc: https://raw.githubusercontent.com/isaoinvest/AI-coding-AR-TEST/main/targets.mind;
                     warmupTolerance: 5;
                     missTolerance: 10;
                     filterMinCF: 0.000001; 
-                    filterBeta: 250;
-                    uiScanning: #scanning-overlay;"
+                    filterBeta: 250;"
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
@@ -364,15 +108,263 @@
         look-controls="enabled: false"
       ></a-camera>
 
+      <!-- Target 0 with 3D info panel -->
       <a-entity
         id="target0"
         mindar-image-target="targetIndex: 0"
-      ></a-entity>
+      >
+        <!-- 3D 資訊面板 -->
+        <a-plane
+          id="info-panel-0"
+          position="0.7 0 0.05"
+          width="0.6"
+          height="0.4"
+          rotation="0 0 0"
+          material="color: #000; opacity: 0.15; transparent: true; shader: flat"
+          visible="false"
+        >
+          <!-- 背景玻璃效果 -->
+          <a-plane
+            position="0 0 -0.001"
+            width="0.6"
+            height="0.4"
+            material="color: #ffffff; opacity: 0.05; transparent: true; shader: flat"
+          ></a-plane>
+          
+          <!-- 邊框 -->
+          <a-plane
+            position="0 0 0.001"
+            width="0.602"
+            height="0.402"
+            material="color: #00ffff; opacity: 0.3; transparent: true; shader: flat; side: double"
+          ></a-plane>
+          
+          <!-- 發光邊框效果 -->
+          <a-plane
+            position="0 0 0.002"
+            width="0.605"
+            height="0.405"
+            material="color: #00ffff; opacity: 0.15; transparent: true; shader: flat"
+            animation="property: material.opacity; from: 0.15; to: 0.4; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine"
+          ></a-plane>
+
+          <!-- 標題區域 -->
+          <a-plane
+            position="0 0.13 0.003"
+            width="0.55"
+            height="0.08"
+            material="color: #00ffff; opacity: 0.2; transparent: true; shader: flat"
+          >
+            <a-text
+              value="📱 互動影片體驗"
+              position="0 0 0.001"
+              width="0.5"
+              align="center"
+              color="#ffffff"
+              shader="msdf"
+              font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
+            ></a-text>
+          </a-plane>
+
+          <!-- 內容文字 -->
+          <a-text
+            id="text-content-0"
+            value="創新的 AR 互動影片展示\n結合圖像識別技術\n沉浸式體驗設計"
+            position="0 -0.02 0.003"
+            width="0.45"
+            align="center"
+            color="#ffffff"
+            opacity="0.85"
+            line-height="50"
+            shader="msdf"
+            font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
+          ></a-text>
+
+          <!-- 底部狀態欄 -->
+          <a-plane
+            position="0 -0.16 0.003"
+            width="0.55"
+            height="0.05"
+            material="color: #ffffff; opacity: 0.1; transparent: true; shader: flat"
+          >
+            <!-- 狀態點 -->
+            <a-sphere
+              position="-0.2 0 0.001"
+              radius="0.008"
+              material="color: #00ffff; opacity: 0.8; shader: flat"
+              animation="property: scale; from: 1 1 1; to: 1.3 1.3 1.3; dur: 1500; dir: alternate; loop: true; easing: easeInOutSine"
+            ></a-sphere>
+            
+            <a-text
+              value="Target ID: 0  |  已追蹤"
+              position="0.05 0 0.001"
+              width="0.35"
+              align="center"
+              color="#ffffff"
+              opacity="0.6"
+              shader="msdf"
+              font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
+            ></a-text>
+          </a-plane>
+
+          <!-- 四角裝飾 -->
+          <a-entity position="-0.28 0.18 0.004">
+            <a-plane width="0.03" height="0.002" position="0.015 0 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+            <a-plane width="0.002" height="0.03" position="0 -0.015 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+          </a-entity>
+          <a-entity position="0.28 0.18 0.004">
+            <a-plane width="0.03" height="0.002" position="-0.015 0 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+            <a-plane width="0.002" height="0.03" position="0 -0.015 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+          </a-entity>
+          <a-entity position="-0.28 -0.18 0.004">
+            <a-plane width="0.03" height="0.002" position="0.015 0 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+            <a-plane width="0.002" height="0.03" position="0 0.015 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+          </a-entity>
+          <a-entity position="0.28 -0.18 0.004">
+            <a-plane width="0.03" height="0.002" position="-0.015 0 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+            <a-plane width="0.002" height="0.03" position="0 0.015 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+          </a-entity>
+
+          <!-- 連接線到目標 -->
+          <a-entity position="-0.3 0 0">
+            <a-plane
+              width="0.15"
+              height="0.002"
+              position="-0.075 0 0"
+              material="color: #00ffff; opacity: 0.4; transparent: true; shader: flat"
+            ></a-plane>
+          </a-entity>
+        </a-plane>
+      </a-entity>
       
+      <!-- Target 1 with 3D info panel -->
       <a-entity
         id="target1"
         mindar-image-target="targetIndex: 1"
-      ></a-entity>
+      >
+        <!-- 3D 資訊面板 -->
+        <a-plane
+          id="info-panel-1"
+          position="0.8 0 0.05"
+          width="0.6"
+          height="0.4"
+          rotation="0 0 0"
+          material="color: #000; opacity: 0.15; transparent: true; shader: flat"
+          visible="false"
+        >
+          <!-- 背景玻璃效果 -->
+          <a-plane
+            position="0 0 -0.001"
+            width="0.6"
+            height="0.4"
+            material="color: #ffffff; opacity: 0.05; transparent: true; shader: flat"
+          ></a-plane>
+          
+          <!-- 邊框 -->
+          <a-plane
+            position="0 0 0.001"
+            width="0.602"
+            height="0.402"
+            material="color: #00ffff; opacity: 0.3; transparent: true; shader: flat; side: double"
+          ></a-plane>
+          
+          <!-- 發光邊框效果 -->
+          <a-plane
+            position="0 0 0.002"
+            width="0.605"
+            height="0.405"
+            material="color: #00ffff; opacity: 0.15; transparent: true; shader: flat"
+            animation="property: material.opacity; from: 0.15; to: 0.4; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine"
+          ></a-plane>
+
+          <!-- 標題區域 -->
+          <a-plane
+            position="0 0.13 0.003"
+            width="0.55"
+            height="0.08"
+            material="color: #00ffff; opacity: 0.2; transparent: true; shader: flat"
+          >
+            <a-text
+              value="🎬 進階內容展示"
+              position="0 0 0.001"
+              width="0.5"
+              align="center"
+              color="#ffffff"
+              shader="msdf"
+              font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
+            ></a-text>
+          </a-plane>
+
+          <!-- 內容文字 -->
+          <a-text
+            id="text-content-1"
+            value="體驗未來科技視覺呈現\n透過 AR 技術\n數位內容與真實世界結合"
+            position="0 -0.02 0.003"
+            width="0.45"
+            align="center"
+            color="#ffffff"
+            opacity="0.85"
+            line-height="50"
+            shader="msdf"
+            font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
+          ></a-text>
+
+          <!-- 底部狀態欄 -->
+          <a-plane
+            position="0 -0.16 0.003"
+            width="0.55"
+            height="0.05"
+            material="color: #ffffff; opacity: 0.1; transparent: true; shader: flat"
+          >
+            <!-- 狀態點 -->
+            <a-sphere
+              position="-0.2 0 0.001"
+              radius="0.008"
+              material="color: #00ffff; opacity: 0.8; shader: flat"
+              animation="property: scale; from: 1 1 1; to: 1.3 1.3 1.3; dur: 1500; dir: alternate; loop: true; easing: easeInOutSine"
+            ></a-sphere>
+            
+            <a-text
+              value="Target ID: 1  |  已追蹤"
+              position="0.05 0 0.001"
+              width="0.35"
+              align="center"
+              color="#ffffff"
+              opacity="0.6"
+              shader="msdf"
+              font="https://cdn.aframe.io/examples/ui/Viga-Regular.json"
+            ></a-text>
+          </a-plane>
+
+          <!-- 四角裝飾 -->
+          <a-entity position="-0.28 0.18 0.004">
+            <a-plane width="0.03" height="0.002" position="0.015 0 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+            <a-plane width="0.002" height="0.03" position="0 -0.015 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+          </a-entity>
+          <a-entity position="0.28 0.18 0.004">
+            <a-plane width="0.03" height="0.002" position="-0.015 0 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+            <a-plane width="0.002" height="0.03" position="0 -0.015 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+          </a-entity>
+          <a-entity position="-0.28 -0.18 0.004">
+            <a-plane width="0.03" height="0.002" position="0.015 0 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+            <a-plane width="0.002" height="0.03" position="0 0.015 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+          </a-entity>
+          <a-entity position="0.28 -0.18 0.004">
+            <a-plane width="0.03" height="0.002" position="-0.015 0 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+            <a-plane width="0.002" height="0.03" position="0 0.015 0" material="color: #00ffff; opacity: 0.6; shader: flat"></a-plane>
+          </a-entity>
+
+          <!-- 連接線到目標 -->
+          <a-entity position="-0.3 0 0">
+            <a-plane
+              width="0.2"
+              height="0.002"
+              position="-0.1 0 0"
+              material="color: #00ffff; opacity: 0.4; transparent: true; shader: flat"
+            ></a-plane>
+          </a-entity>
+        </a-plane>
+      </a-entity>
     </a-scene>
 
     <script>
@@ -386,132 +378,84 @@
         const targetEl0 = document.querySelector("#target0");
         const targetEl1 = document.querySelector("#target1");
         const scanningOverlay = document.getElementById("scanning-overlay");
-        const infoCard0 = document.getElementById("info-card-0");
-        const infoCard1 = document.getElementById("info-card-1");
-        const line0 = document.getElementById("line-0");
-        const line1 = document.getElementById("line-1");
-        const typingText0 = document.getElementById("typing-text-0");
-        const typingText1 = document.getElementById("typing-text-1");
+        const infoPanel0 = document.querySelector("#info-panel-0");
+        const infoPanel1 = document.querySelector("#info-panel-1");
 
         let activeTargets = new Set();
 
-        // 計算 2D 螢幕位置
-        function getScreenPosition(target) {
-          const camera = SCENE.camera;
-          if (!camera) return null;
+        // 顯示 3D 資訊面板
+        function showInfoPanel(targetIndex) {
+          const panel = targetIndex === 0 ? infoPanel0 : infoPanel1;
           
-          // 獲取目標的世界位置
-          const targetPos = new THREE.Vector3();
-          target.object3D.getWorldPosition(targetPos);
-          
-          // 轉換到螢幕座標
-          targetPos.project(camera);
-
-          const widthHalf = window.innerWidth / 2;
-          const heightHalf = window.innerHeight / 2;
-
-          return {
-            x: (targetPos.x * widthHalf) + widthHalf,
-            y: -(targetPos.y * heightHalf) + heightHalf,
-            z: targetPos.z
-          };
+          // 設為可見並添加漸入動畫
+          panel.setAttribute('visible', true);
+          panel.setAttribute('animation', {
+            property: 'scale',
+            from: '0.5 0.5 0.5',
+            to: '1 1 1',
+            dur: 500,
+            easing: 'easeOutElastic'
+          });
+          panel.setAttribute('animation__opacity', {
+            property: 'material.opacity',
+            from: 0,
+            to: 0.15,
+            dur: 500
+          });
         }
 
-        // 更新資訊卡片位置
-        function updateInfoCardPosition(targetIndex) {
-          const target = targetIndex === 0 ? targetEl0 : targetEl1;
-          const card = targetIndex === 0 ? infoCard0 : infoCard1;
-          const line = targetIndex === 0 ? line0 : line1;
-
-          if (!activeTargets.has(targetIndex)) return;
-
-          const pos = getScreenPosition(target);
-          if (!pos) return;
+        // 隱藏 3D 資訊面板
+        function hideInfoPanel(targetIndex) {
+          const panel = targetIndex === 0 ? infoPanel0 : infoPanel1;
           
-          // 如果目標在鏡頭後面，隱藏卡片
-          if (pos.z > 1) {
-            card.style.opacity = '0';
-            line.style.opacity = '0';
-            return;
-          }
+          // 淡出動畫
+          panel.setAttribute('animation', {
+            property: 'scale',
+            to: '0.5 0.5 0.5',
+            dur: 300,
+            easing: 'easeInQuad'
+          });
+          panel.setAttribute('animation__opacity', {
+            property: 'material.opacity',
+            to: 0,
+            dur: 300
+          });
           
-          // 確保卡片可見
-          card.style.opacity = '1';
-          line.style.opacity = '1';
-          
-          // 根據目標位置調整卡片位置
-          let offsetX = 150;
-          let offsetY = -100;
-          
-          // 動態調整偏移量，確保卡片在螢幕內
-          if (pos.x > window.innerWidth * 0.6) {
-            offsetX = -150;  // 顯示在左邊
-          }
-          
-          if (pos.y < window.innerHeight * 0.3) {
-            offsetY = 100;  // 顯示在下方
-          } else if (pos.y > window.innerHeight * 0.7) {
-            offsetY = -100;  // 顯示在上方
-          }
-
-          const cardX = Math.max(120, Math.min(window.innerWidth - 120, pos.x + offsetX));
-          const cardY = Math.max(100, Math.min(window.innerHeight - 100, pos.y + offsetY));
-
-          card.style.left = `${cardX}px`;
-          card.style.top = `${cardY}px`;
-
-          // 更新連接線
-          const deltaX = cardX - pos.x;
-          const deltaY = cardY - pos.y;
-          const lineLength = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          const lineAngle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
-
-          line.style.left = `${pos.x}px`;
-          line.style.top = `${pos.y}px`;
-          line.style.width = `${lineLength}px`;
-          line.style.transform = `rotate(${lineAngle}deg)`;
+          // 動畫結束後隱藏
+          setTimeout(() => {
+            panel.setAttribute('visible', false);
+          }, 300);
         }
 
         // 啟動目標
         function activateTarget(targetIndex) {
           activeTargets.add(targetIndex);
+          
+          // 隱藏掃描 UI
           scanningOverlay.classList.add("hidden");
-
-          const card = targetIndex === 0 ? infoCard0 : infoCard1;
-          const line = targetIndex === 0 ? line0 : line1;
-          const typingText = targetIndex === 0 ? typingText0 : typingText1;
-
-          // 重置打字動畫
-          typingText.style.animation = 'none';
-          setTimeout(() => {
-            typingText.style.animation = '';
-          }, 10);
-
-          setTimeout(() => {
-            card.classList.add("active");
-            line.classList.add("active");
-            updateInfoCardPosition(targetIndex);
-          }, 100);
+          
+          // 顯示對應的 3D 面板
+          showInfoPanel(targetIndex);
         }
 
         // 停用目標
         function deactivateTarget(targetIndex) {
           activeTargets.delete(targetIndex);
-
-          const card = targetIndex === 0 ? infoCard0 : infoCard1;
-          const line = targetIndex === 0 ? line0 : line1;
-
-          card.classList.remove("active");
-          line.classList.remove("active");
-
+          
+          // 隱藏對應的 3D 面板
+          hideInfoPanel(targetIndex);
+          
+          // 如果沒有任何活動目標，顯示掃描 UI
           if (activeTargets.size === 0) {
             setTimeout(() => {
-              scanningOverlay.classList.remove("hidden");
-            }, 300);
+              if (activeTargets.size === 0) {
+                scanningOverlay.classList.remove("hidden");
+              }
+            }, 500);
           }
         }
 
-        // 目標追蹤事件
+        // Target 0 事件
         targetEl0.addEventListener("targetFound", () => {
           activateTarget(0);
         });
@@ -520,6 +464,7 @@
           deactivateTarget(0);
         });
 
+        // Target 1 事件
         targetEl1.addEventListener("targetFound", () => {
           activateTarget(1);
         });
@@ -528,25 +473,11 @@
           deactivateTarget(1);
         });
 
-        // 持續更新位置
-        let animationFrame;
-        function updateLoop() {
-          if (activeTargets.size > 0) {
-            activeTargets.forEach(targetIndex => {
-              updateInfoCardPosition(targetIndex);
-            });
-          }
-          animationFrame = requestAnimationFrame(updateLoop);
-        }
-
-        SCENE.addEventListener('renderstart', () => {
-          updateLoop();
-        });
-
-        // 清理
-        window.addEventListener('beforeunload', () => {
-          if (animationFrame) {
-            cancelAnimationFrame(animationFrame);
+        // 頁面可見性處理
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            // 當頁面隱藏時，清空活動目標集合
+            activeTargets.clear();
           }
         });
       }
